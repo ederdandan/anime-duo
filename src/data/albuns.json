@@ -1,0 +1,89 @@
+[
+  {
+    "id": "lofi",
+    "titulo": "Lo-Fi pra relaxar",
+    "descricao": "Quartos aconchegantes, cafeterias em dia de chuva e aquela luz de fim de tarde.",
+    "capa": "images/lofi/quarto-chuva.svg",
+    "itens": [
+      {
+        "id": "quarto-chuva",
+        "url": "images/lofi/quarto-chuva.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "Adoro a luz do abajur contrastando com a chuva na janela. Traz uma sensação de paz.",
+        "cores": ["#2D2343", "#5E4370", "#E69A8B", "#FFDCA0"]
+      },
+      {
+        "id": "cafeteria",
+        "url": "images/lofi/cafeteria.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "Um chocolate quente, a vitrine embaçada e ninguém com pressa.",
+        "cores": ["#3B2F4A", "#7A5368", "#E6A58F", "#F4E4D4"]
+      },
+      {
+        "id": "janela-noite",
+        "url": "images/lofi/janela-noite.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "A cidade dormindo e só algumas janelas acesas. Parece que cada uma tem uma história.",
+        "cores": ["#1E1B3A", "#4A3B6B", "#B07A8C", "#FFD27A", "#FFF2D6"]
+      }
+    ]
+  },
+  {
+    "id": "ghibli",
+    "titulo": "Campos Ghibli",
+    "descricao": "Natureza vibrante, grama verde pintada à mão e nuvens enormes.",
+    "capa": "images/ghibli/campo-nuvens.svg",
+    "itens": [
+      {
+        "id": "campo-nuvens",
+        "url": "images/ghibli/campo-nuvens.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "Essas nuvens parecem algodão. Dá vontade de deitar na grama e ficar olhando.",
+        "cores": ["#4FA8EC", "#BCE4FF", "#3F8A35", "#66B548", "#FFFFFF"]
+      },
+      {
+        "id": "floresta",
+        "url": "images/ghibli/floresta.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "O raio de sol entrando no meio das árvores é a parte mais mágica.",
+        "cores": ["#A8E0B5", "#4E9A5A", "#1F4A2A", "#FFF7C2"]
+      },
+      {
+        "id": "colina",
+        "url": "images/ghibli/colina.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "Uma árvore sozinha no alto da colina. Simples e perfeita.",
+        "cores": ["#7CC3F2", "#E6F5FF", "#79C257", "#4E9A3E", "#5B3A2A"]
+      }
+    ]
+  },
+  {
+    "id": "shinkai",
+    "titulo": "Céus de Shinkai",
+    "descricao": "Tons pastel, gradientes de rosa, roxo e azul profundo com estrelas e cometas.",
+    "capa": "images/shinkai/ceu-cometa.svg",
+    "itens": [
+      {
+        "id": "ceu-cometa",
+        "url": "images/shinkai/ceu-cometa.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "Esse céu rosa e roxo parece o minuto logo depois do pôr do sol. E ainda tem um cometa!",
+        "cores": ["#1B1A4A", "#47388A", "#C76CB0", "#FFB3A4", "#FFFFFF"]
+      },
+      {
+        "id": "por-do-sol",
+        "url": "images/shinkai/por-do-sol.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "Os fios de poste cortando o céu laranja: cena clássica de fim de aula.",
+        "cores": ["#3A3A8C", "#B86CB4", "#FFA38A", "#FFE0A8", "#2A2050"]
+      },
+      {
+        "id": "estrelas",
+        "url": "images/shinkai/estrelas.svg",
+        "anime": "Exemplo · Original",
+        "comentario": "Tantas estrelas que nem parece de verdade. Queria esse céu no meu quarto.",
+        "cores": ["#0E1033", "#2B2A6B", "#6B4A9A", "#141233"]
+      }
+    ]
+  }
+]

@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/* ✦ Cores e fontes do estilo Shoujo (versão Pétalas de Sakura).
+   Mudar um valor aqui muda o site inteiro. */
+@theme {
+  --color-pessego: #FFF4F1;
+  --color-ameixa: #6B3A4E;
+  --color-rosa: #D4567E;
+  --color-rosa-escuro: #A8456A;
+  --color-rosa-suave: #B0676F;
+  --color-dourado: #E3B04B;
+  --color-borda: #F2C6B4;
+  --color-borda-forte: #E8B4A0;
+  --color-petala: #F7B6C8;
+
+  --font-titulo: "Kaisei Decol", Georgia, serif;
+  --font-corpo: "Zen Maru Gothic", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+
+/* Fundo rosa-pêssego com pontinhos marrom claro (retícula de mangá) */
+body {
+  margin: 0;
+  min-height: 100dvh;
+  color: var(--color-ameixa);
+  font-family: var(--font-corpo);
+  background-color: var(--color-pessego);
+  background-image:
+    radial-gradient(circle 1.5px at 50% 50%, rgb(170 120 90 / .28) 98%, transparent),
+    radial-gradient(120% 50% at 50% 0%, #FFDCE7 0%, transparent 70%);
+  background-size: 10px 10px, 100% 100%;
+  background-attachment: fixed;
+}
+
+/* Moldura com contorno duplo: branco + rosado */
+.moldura-dupla {
+  background: #fff;
+  box-shadow:
+    0 0 0 1px #F6D2DA,
+    0 0 0 5px #fff,
+    0 0 0 6px var(--color-borda),
+    0 14px 30px -14px rgb(214 110 140 / .55);
+}
+
+/* Brilho branco nas bordas das imagens (cena especial de shoujo) */
+.brilho-branco { position: relative; overflow: hidden; }
+.brilho-branco::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(70% 70% at 50% 50%, transparent 55%, rgb(255 255 255 / .8) 100%);
+}
+
+/* Brilho dourado ✦ que pisca */
+.brilho-dourado {
+  color: var(--color-dourado);
+  text-shadow: 0 0 6px #fff;
+  animation: piscar 2.4s ease-in-out infinite;
+}
+@keyframes piscar {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .35; transform: scale(.7); }
+}
+
+/* Pétalas de sakura caindo */
+.petala {
+  position: fixed;
+  top: -20px;
+  width: 12px;
+  height: 9px;
+  border-radius: 100% 0 100% 0;
+  background: var(--color-petala);
+  opacity: .85;
+  pointer-events: none;
+  z-index: 40;
+  animation: cair linear infinite;
+}
+@keyframes cair {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-30px, 55vh) rotate(200deg); }
+  100% { transform: translate(20px, 110vh) rotate(420deg); }
+}
+
+/* Quem pediu menos movimento no celular não vê animações */
+@media (prefers-reduced-motion: reduce) {
+  .petala { display: none; }
+  .brilho-dourado { animation: none; }
+}
