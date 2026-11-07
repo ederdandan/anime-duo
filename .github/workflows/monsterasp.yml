@@ -1,0 +1,69 @@
+# Envia o site + servidor C# para o MonsterASP.NET por FTP a cada push na main.
+#
+# Precisa destes Secrets (Settings → Secrets and variables → Actions → Secrets):
+#   FTP_SERVIDOR  ex.: siteXXXX.siteasp.net (só o endereço, sem ftp://)
+#   FTP_USUARIO
+#   FTP_SENHA
+#   MURAL_SENHA   senha que a curadora digita na tela "Nova cena"
+# Opcional (aba Variables): FTP_PASTA, a pasta do site no FTP (padrão: /wwwroot)
+name: Publicar no MonsterASP
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: monsterasp
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet publish server/Mural.csproj -c Release -o publish
+
+      - name: Juntar o site React com o servidor
+        run: |
+          mkdir -p publish/wwwroot
+          cp -r dist/. publish/wwwroot/
+
+      - name: Gravar a senha da curadora
+        env:
+          MURAL_SENHA: ${{ secrets.MURAL_SENHA }}
+        run: |
+          test -n "$MURAL_SENHA" || { echo "Falta o secret MURAL_SENHA"; exit 1; }
+          jq -n --arg s "$MURAL_SENHA" '{Mural: {Senha: $s}}' > publish/appsettings.Production.json
+
+      - name: Enviar por FTP
+        env:
+          FTP_SERVIDOR: ${{ secrets.FTP_SERVIDOR }}
+          FTP_USUARIO: ${{ secrets.FTP_USUARIO }}
+          FTP_SENHA: ${{ secrets.FTP_SENHA }}
+          FTP_PASTA: ${{ vars.FTP_PASTA || '/wwwroot' }}
+        run: |
+          sudo apt-get install -y -qq lftp > /dev/null
+          # app_offline.htm pausa o site durante o envio, para os arquivos do servidor poderem ser trocados.
+          # A pasta dados/ (fotos e albuns.json criados pelo site) nunca é enviada nem apagada.
+          lftp -u "$FTP_USUARIO,$FTP_SENHA" "$FTP_SERVIDOR" <<EOF
+          set ftp:ssl-allow yes
+          set ssl:verify-certificate no
+          set net:max-retries 3
+          cd "$FTP_PASTA"
+          put .github/app_offline.htm -o app_offline.htm
+          mirror -R --parallel=4 --exclude-glob dados/ publish/ ./
+          rm app_offline.htm
+          bye
+          EOF

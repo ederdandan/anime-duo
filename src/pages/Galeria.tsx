@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import albuns from '../data/albuns.json'
 import { caminho } from '../lib/caminho'
+import { useAlbuns } from '../lib/albuns'
 import Lightbox from '../components/Lightbox'
-import type { Album } from '../types'
-
-const lista = albuns as Album[]
+import Carregando from '../components/Carregando'
 
 export default function Galeria() {
   const { id } = useParams()
-  const album = lista.find((a) => a.id === id)
+  const { albuns, temServidor } = useAlbuns()
   const [aberta, setAberta] = useState<number | null>(null)
+
+  if (!albuns) return <Carregando />
+  const album = albuns.find((a) => a.id === id)
 
   if (!album) {
     return (
@@ -43,6 +44,18 @@ export default function Galeria() {
         <p className="mx-auto mt-2 max-w-md text-rosa-suave">{album.descricao}</p>
       </header>
 
+      {album.itens.length === 0 && (
+        <div className="py-12 text-center text-rosa-suave">
+          <p className="text-4xl text-petala" aria-hidden="true">✿</p>
+          <p className="mt-2">Esse álbum ainda está vazio.</p>
+          {temServidor && (
+            <Link to={`/nova?album=${album.id}`} className="mt-4 inline-flex min-h-11 items-center rounded-full bg-rosa px-5 font-bold text-white">
+              Adicionar a primeira cena
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Masonry: colunas de alturas diferentes, como um mural */}
       <ul className="columns-2 gap-4 md:columns-3">
         {album.itens.map((item, i) => (
@@ -70,7 +83,13 @@ export default function Galeria() {
 
       <AnimatePresence>
         {aberta !== null && (
-          <Lightbox itens={album.itens} indice={aberta} onTrocar={setAberta} onFechar={() => setAberta(null)} />
+          <Lightbox
+            albumId={album.id}
+            itens={album.itens}
+            indice={Math.min(aberta, album.itens.length - 1)}
+            onTrocar={setAberta}
+            onFechar={() => setAberta(null)}
+          />
         )}
       </AnimatePresence>
     </motion.main>

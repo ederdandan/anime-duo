@@ -4,16 +4,38 @@ Um mural de cenas de anime no estilo **Shoujo · Pétalas de Sakura**. Projeto d
 
 A ideia completa está em [ideia.md](ideia.md).
 
+## Como funciona
+
+- **Site** (pasta `src/`): React + Tailwind, no estilo Shoujo.
+- **Servidor** (pasta `server/`): C# / ASP.NET Core. Entrega o site, guarda os álbuns e recebe as fotos enviadas pela tela **✦ Nova cena**.
+- No servidor, as cenas criadas pelo site ficam em `dados/albuns.json` e as fotos em `dados/midia/<álbum>/`. Na primeira vez, ele começa com os álbuns de exemplo de `src/data/albuns.json`.
+
 ## Rodar no computador
+
+Em um terminal, o servidor (precisa do .NET 10):
+
+```bash
+npm run api
+```
+
+Em outro terminal, o site:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abra o endereço que aparecer (normalmente http://localhost:5173). Para ver como fica no celular, abra o mesmo endereço no celular conectado ao mesmo Wi-Fi, usando `npm run dev -- --host`.
+Abra http://localhost:5173. A senha da tela "Nova cena" no computador é `sakura-local`, definida em `server/appsettings.Development.json`.
 
-## Para a curadora: como mudar o conteúdo
+## Para a curadora: criar cenas pelo site
+
+1. No rodapé do mural, toque em **✦ Nova cena**.
+2. Digite a senha da curadora. Só precisa uma vez em cada celular.
+3. Escolha o álbum (ou crie um novo), a foto, escreva o comentário e toque em **Criar cena ✦**.
+
+O site diminui a foto antes de enviar e descobre as cores sozinho. Para apagar uma cena, abra a cena em tela cheia e toque em **Apagar cena**.
+
+## Mudar o conteúdo pelos arquivos
 
 Tudo o que aparece no site vem de dois arquivos de texto. Não precisa programar para mexer neles:
 
@@ -41,7 +63,28 @@ Dica: você pode pedir para a IA: *"Adiciona a foto public/images/lofi/minha-cen
 
 As imagens que vêm no projeto (`.svg`) são só exemplos. Pode apagar e trocar pelas capturas de verdade. Prefira `.jpg` ou `.webp` com até uns 1600px de largura, para abrir rápido no celular.
 
-## Publicar no GitHub Pages
+Atenção: no MonsterASP, as cenas criadas pelo site ficam no servidor (`dados/`), não neste arquivo. Mexer no `src/data/albuns.json` só muda os álbuns de exemplo usados na primeira vez e a versão do GitHub Pages.
+
+## Publicar no MonsterASP.NET (com a tela "Nova cena")
+
+O workflow `.github/workflows/monsterasp.yml` monta o site e o servidor e envia por FTP a cada push na `main`.
+
+1. No painel do MonsterASP, crie o site como **My own application**.
+2. No GitHub, em **Settings → Secrets and variables → Actions → Secrets**, cadastre:
+
+   | Nome | O que é |
+   |---|---|
+   | `FTP_SERVIDOR` | endereço do FTP, sem `ftp://` |
+   | `FTP_USUARIO` | usuário do FTP |
+   | `FTP_SENHA` | senha do FTP |
+   | `MURAL_SENHA` | a senha que a curadora vai digitar na tela "Nova cena" |
+
+3. Se a pasta do site no FTP não for `/wwwroot`, crie em **Variables** a variável `FTP_PASTA` com o caminho certo.
+4. Faça um push (ou rode o workflow em **Actions → Publicar no MonsterASP → Run workflow**).
+
+A pasta `dados/` no servidor nunca é enviada nem apagada pelo workflow, então as cenas criadas pelo site não se perdem a cada atualização.
+
+## Publicar no GitHub Pages (só leitura)
 
 1. Crie um repositório no GitHub e envie o projeto (`git push`).
 2. No repositório, vá em **Settings → Pages** e, em **Source**, escolha **GitHub Actions**.

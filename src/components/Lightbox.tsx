@@ -1,10 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, type PanInfo } from 'motion/react'
 import { caminho } from '../lib/caminho'
+import { apagarCena, senhaSalva } from '../lib/api'
+import { useAlbuns } from '../lib/albuns'
 import Paleta from './Paleta'
 import type { Item } from '../types'
 
 interface Props {
+  albumId: string
   itens: Item[]
   indice: number
   onTrocar: (novo: number) => void
@@ -12,8 +15,22 @@ interface Props {
 }
 
 // Imagem em tela cheia. No celular: deslize para os lados para trocar de imagem.
-export default function Lightbox({ itens, indice, onTrocar, onFechar }: Props) {
+export default function Lightbox({ albumId, itens, indice, onTrocar, onFechar }: Props) {
   const item = itens[indice]
+  const { temServidor, recarregar } = useAlbuns()
+  const podeApagar = temServidor && !!senhaSalva()
+  const [confirmando, setConfirmando] = useState<string | null>(null)
+  const [erro, setErro] = useState('')
+
+  async function apagar() {
+    try {
+      await apagarCena(albumId, item.id)
+      onFechar()
+      await recarregar()
+    } catch (e) {
+      setErro((e as Error).message)
+    }
+  }
   const anterior = () => onTrocar((indice - 1 + itens.length) % itens.length)
   const proxima = () => onTrocar((indice + 1) % itens.length)
 
@@ -99,6 +116,23 @@ export default function Lightbox({ itens, indice, onTrocar, onFechar }: Props) {
           </div>
 
           <p className="text-center text-xs text-white/60">Deslize para o lado para trocar · para baixo para fechar</p>
+
+          {podeApagar && (
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
+              {confirmando === item.id ? (
+                <>
+                  <span className="text-white">Apagar essa cena de vez?</span>
+                  <button type="button" onClick={apagar} className="min-h-11 rounded-full bg-white px-4 font-bold text-rosa">Sim, apagar</button>
+                  <button type="button" onClick={() => setConfirmando(null)} className="min-h-11 rounded-full px-4 text-white underline">Cancelar</button>
+                </>
+              ) : (
+                <button type="button" onClick={() => { setErro(''); setConfirmando(item.id) }} className="min-h-11 rounded-full px-4 text-white/70 underline">
+                  Apagar cena
+                </button>
+              )}
+              {erro && <p className="w-full text-center text-white" role="alert">{erro}</p>}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

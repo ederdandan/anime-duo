@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "api": "dotnet run --project server",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
   },

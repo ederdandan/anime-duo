@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import albuns from '../data/albuns.json'
 import site from '../data/site.json'
-import { caminho } from '../lib/caminho'
-import type { Album } from '../types'
-
-const lista = albuns as Album[]
+import { useAlbuns } from '../lib/albuns'
+import Capa from '../components/Capa'
+import Carregando from '../components/Carregando'
 
 export default function Home() {
+  const { albuns } = useAlbuns()
+  if (!albuns) return <Carregando />
+  const lista = albuns
+
   return (
     <motion.main
       initial={{ opacity: 0 }}
@@ -42,14 +44,7 @@ export default function Home() {
                 to={`/album/${album.id}`}
                 className="moldura-dupla block rounded-[22px] p-2 focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-rosa"
               >
-                <div className="brilho-branco aspect-[4/3] rounded-2xl">
-                  <img
-                    src={caminho(album.capa)}
-                    alt=""
-                    className="size-full object-cover"
-                    loading={i < 2 ? 'eager' : 'lazy'}
-                  />
-                </div>
+                <Capa url={album.capa} className="aspect-[4/3] rounded-2xl" eager={i < 2} />
                 <div className="px-2 pt-3 pb-1">
                   <h2 className="font-titulo text-xl text-rosa-escuro">{album.titulo}</h2>
                   <p className="mt-1 text-sm leading-relaxed">{album.descricao}</p>

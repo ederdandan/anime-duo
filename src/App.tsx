@@ -4,6 +4,7 @@ import Petalas from './components/Petalas'
 import Rodape from './components/Rodape'
 import Home from './pages/Home'
 import Galeria from './pages/Galeria'
+import NovaCena from './pages/NovaCena'
 
 export default function App() {
   const location = useLocation()
@@ -17,6 +18,7 @@ export default function App() {
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/album/:id" element={<Galeria />} />
+            <Route path="/nova" element={<NovaCena />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </AnimatePresence>

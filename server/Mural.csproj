@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Mural</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Os álbuns de exemplo viram a "semente": usados só na primeira vez que o servidor sobe. -->
+  <ItemGroup>
+    <None Include="..\src\data\albuns.json" Link="semente\albuns.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- A pasta dados/ é criada pelo servidor e nunca vai junto no envio.
+       A senha de teste local (appsettings.Development.json) também não. -->
+  <ItemGroup>
+    <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
+    <Content Remove="dados\**" />
+    <None Remove="dados\**" />
+  </ItemGroup>
+
+</Project>

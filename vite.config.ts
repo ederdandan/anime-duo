@@ -7,4 +7,11 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
+  // No computador, o "npm run dev" repassa /api e /midia para o servidor C# (npm run api).
+  server: {
+    proxy: {
+      '/api': 'http://localhost:5080',
+      '/midia': 'http://localhost:5080',
+    },
+  },
 })

@@ -1,4 +1,8 @@
 node_modules
 dist
+publish
 *.log
 .DS_Store
+server/bin
+server/obj
+server/dados
