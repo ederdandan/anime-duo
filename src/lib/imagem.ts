@@ -29,7 +29,7 @@ export async function finalizarFoto(canvas: HTMLCanvasElement): Promise<{ foto: 
 }
 
 // Foto de perfil: recorta um quadrado do meio e diminui para 400x400.
-export async function prepararFotoPerfil(arquivo: File): Promise<{ foto: Blob; nomeArquivo: string }> {
+export async function prepararFotoPerfil(arquivo: Blob): Promise<{ foto: Blob; nomeArquivo: string }> {
   const bitmap = await createImageBitmap(arquivo)
   const lado = Math.min(bitmap.width, bitmap.height)
   const canvas = document.createElement('canvas')

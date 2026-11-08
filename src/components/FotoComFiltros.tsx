@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { carregarFoto, extrairCores, reduzir } from '../lib/imagem'
 import { aplicarFiltro, FILTROS, type Filtro } from '../lib/filtros'
+import BotaoCamera from './BotaoCamera'
 
 export interface FotoEscolhida {
   original: HTMLCanvasElement   // a foto já diminuída, sem filtro
@@ -20,7 +21,7 @@ export default function FotoComFiltros({ valor, onMudar, onErro }: Props) {
   const [base, setBase] = useState<{ previa: HTMLCanvasElement; miniaturas: Record<string, string> } | null>(null)
   const [previa, setPrevia] = useState('')
 
-  async function escolheu(arquivo: File | undefined) {
+  async function escolheu(arquivo: Blob | undefined) {
     if (!arquivo) return
     onErro('')
     setPreparando(true)
@@ -64,12 +65,10 @@ export default function FotoComFiltros({ valor, onMudar, onErro }: Props) {
         </div>
       )}
 
-      {/* "capture" pede para o celular abrir a câmera direto. No computador, abre a escolha de arquivo. */}
       <div className="flex gap-2">
-        <label className={botao}>
+        <BotaoCamera className={botao} onFoto={escolheu} onErro={onErro}>
           <span aria-hidden="true">📷</span> {previa ? 'Tirar outra' : 'Câmera'}
-          <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => { escolheu(e.target.files?.[0]); e.target.value = '' }} />
-        </label>
+        </BotaoCamera>
         <label className={botao}>
           <span aria-hidden="true">🖼️</span> Galeria
           <input type="file" accept="image/*" className="sr-only" onChange={(e) => { escolheu(e.target.files?.[0]); e.target.value = '' }} />

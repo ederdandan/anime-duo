@@ -7,6 +7,7 @@ import { useConta } from '../lib/conta'
 import { prepararFotoPerfil } from '../lib/imagem'
 import { botaoPrincipal, campo, rotulo, voltar } from '../lib/estilos'
 import Avatar from '../components/Avatar'
+import BotaoCamera from '../components/BotaoCamera'
 import SeloCuradoria from '../components/SeloCuradoria'
 import Carregando from '../components/Carregando'
 
@@ -152,7 +153,7 @@ function Cadastro() {
 
   useEffect(() => () => { if (previa) URL.revokeObjectURL(previa) }, [previa])
 
-  async function escolheuFoto(arquivo: File | undefined) {
+  async function escolheuFoto(arquivo: Blob | undefined) {
     if (!arquivo) return
     setErro('')
     try {
@@ -187,11 +188,10 @@ function Cadastro() {
         </label>
         <input id="foto-perfil" type="file" accept="image/*" className="sr-only" onChange={(e) => escolheuFoto(e.target.files?.[0])} />
         <div className="flex gap-2 text-sm">
-          {/* capture="user" abre a câmera da frente (selfie) no celular */}
-          <label className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-cartao px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
+          {/* frente = câmera da frente (selfie) */}
+          <BotaoCamera frente onFoto={escolheuFoto} onErro={setErro} className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-cartao px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
             <span aria-hidden="true">📷</span> Tirar selfie
-            <input type="file" accept="image/*" capture="user" className="sr-only" onChange={(e) => escolheuFoto(e.target.files?.[0])} />
-          </label>
+          </BotaoCamera>
           <label htmlFor="foto-perfil" className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-cartao px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
             <span aria-hidden="true">🖼️</span> Galeria
           </label>
