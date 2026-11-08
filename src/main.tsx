@@ -5,6 +5,9 @@ import App from './App'
 import { AlbunsProvider } from './lib/albuns'
 import { ContaProvider } from './lib/conta'
 import './index.css'
+import { prepararInstalacao } from './lib/instalar'
+
+prepararInstalacao()
 
 // HashRouter: os endereços ficam como .../#/album/lofi
 // Assim o link de um álbum abre direto, sem erro 404 no GitHub Pages.

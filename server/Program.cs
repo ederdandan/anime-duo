@@ -47,8 +47,41 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Quem abrir pelo endereço http:// vai para o https:// (com cadeado).
+// No computador (localhost) continua em http, para facilitar os testes.
+app.Use(async (ctx, next) =>
+{
+    var host = ctx.Request.Host.Host;
+    var local = host is "localhost" or "127.0.0.1" or "[::1]";
+    var jaSeguro = ctx.Request.IsHttps || ctx.Request.Headers["X-Forwarded-Proto"] == "https";
+    if (!local && !jaSeguro)
+    {
+        var destino = $"https://{ctx.Request.Host}{ctx.Request.PathBase}{ctx.Request.Path}{ctx.Request.QueryString}";
+        ctx.Response.Redirect(destino, permanent: false, preserveMethod: true);
+        return;
+    }
+    await next();
+});
+
 app.UseDefaultFiles();
-app.UseStaticFiles();
+// Arquivos do site:
+// - /assets: o nome muda quando o conteúdo muda, então o celular pode guardar por 1 ano.
+// - /icones e /images: guarda por 1 semana.
+// - index.html, sw.js e o manifesto: sempre conferir se tem versão nova.
+var tipos = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+tipos.Mappings[".webmanifest"] = "application/manifest+json";
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = tipos,
+    OnPrepareResponse = c =>
+    {
+        var caminho = c.Context.Request.Path.Value ?? "";
+        c.Context.Response.Headers.CacheControl =
+            caminho.StartsWith("/assets/") ? "public, max-age=31536000, immutable"
+            : caminho.StartsWith("/icones/") || caminho.StartsWith("/images/") ? "public, max-age=604800"
+            : "no-cache";
+    },
+});
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(repo.PastaMidia),
@@ -75,6 +108,9 @@ api.MapAlbuns();
 api.MapCuradoria();
 
 // Qualquer outro endereço abre o site.
-app.MapFallbackToFile("index.html");
+app.MapFallbackToFile("index.html", new StaticFileOptions
+{
+    OnPrepareResponse = c => c.Context.Response.Headers.CacheControl = "no-cache",
+});
 
 app.Run();

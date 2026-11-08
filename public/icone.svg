@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Ícone do app do mural. Os PNGs em public/icones/ são feitos a partir deste desenho. -->
+  <defs>
+    <linearGradient id="fundo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD3E1"/>
+      <stop offset="1" stop-color="#FFF4F1"/>
+    </linearGradient>
+    <radialGradient id="luz" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#FFF6D8"/>
+      <stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#fundo)"/>
+  <!-- pontinhos de mangá -->
+  <g fill="#D99AA8" opacity=".35">
+    <circle cx="88" cy="400" r="5"/><circle cx="120" cy="430" r="5"/><circle cx="88" cy="440" r="4"/>
+    <circle cx="424" cy="110" r="5"/><circle cx="392" cy="80" r="4"/>
+  </g>
+  <circle cx="256" cy="262" r="170" fill="url(#luz)"/>
+  <!-- estrela dourada -->
+  <path d="M256 104 L284 230 L410 258 L284 286 L256 412 L228 286 L102 258 L228 230 Z" fill="#E3B04B"/>
+  <path d="M256 150 L272 240 L362 258 L272 274 L256 364 L240 274 L150 258 L240 240 Z" fill="#F2C66B"/>
+  <!-- pétalas de sakura -->
+  <path d="M352 150 C 372 118, 412 122, 414 150 C 404 172, 372 176, 352 150 Z" fill="#F7B6C8"/>
+  <path d="M146 352 C 150 322, 182 310, 196 330 C 192 356, 166 370, 146 352 Z" fill="#D4567E"/>
+  <path d="M372 356 C 384 340, 404 344, 404 360 C 396 372, 380 372, 372 356 Z" fill="#F7B6C8"/>
+</svg>

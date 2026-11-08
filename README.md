@@ -74,6 +74,20 @@ A tela Curadoria tem três abas:
 
 No servidor, ficam em `dados/lixeira.json` e `dados/historico.json`.
 
+## Instalar no celular (app)
+
+O mural pode virar um "app" na tela do celular (PWA), com ícone próprio e abrindo em tela cheia.
+
+- **Android (Chrome):** quando o celular deixa instalar, aparece **📲 Instalar app** no rodapé. Se não aparecer, use Menu ⋮ → **Instalar app** (ou "Adicionar à tela inicial").
+- **iPhone (Safari):** toque em Compartilhar → **Adicionar à Tela de Início**.
+
+O botão "Instalar app" e o modo offline só funcionam com **HTTPS** (o cadeado no endereço). Sem HTTPS, o Android cria só um atalho.
+
+Arquivos:
+- `public/manifest.webmanifest`: nome, cores e ícones do app.
+- `public/icone.svg`: o desenho do ícone. Os PNGs em `public/icones/` são feitos a partir dele.
+- `public/sw.js`: o "ajudante" (service worker). Ele guarda uma cópia do site, das fotos já vistas e da lista de álbuns, para o mural abrir rápido e funcionar sem internet. Login, comentários e curadoria vão sempre direto para a internet.
+
 ## Temas
 
 No rodapé, **🎨 Tema** abre a escolha de cores. Cada aparelho guarda a sua escolha.
