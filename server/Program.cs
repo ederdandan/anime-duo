@@ -1,14 +1,14 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.FileProviders;
 using Mural;
 
 // Servidor do Mural Anime:
 // - entrega o site (pasta wwwroot)
-// - /api/...  lê e grava os álbuns
-// - /midia/... entrega as fotos enviadas pela curadora
+// - /api/...  lê e grava os álbuns, as contas e os comentários
+// - /midia/... entrega as fotos enviadas pela curadora e as fotos de perfil
 
 const long TamanhoMaximo = 8 * 1024 * 1024; // 8 MB por foto (o site já comprime antes de enviar)
 
@@ -20,7 +20,30 @@ var pastaDados = builder.Configuration["Mural:PastaDados"] is { Length: > 0 } p
     : Path.Combine(builder.Environment.ContentRootPath, "dados");
 var semente = Path.Combine(AppContext.BaseDirectory, "semente", "albuns.json");
 var repo = new Repositorio(pastaDados, semente);
-var senhaConfigurada = builder.Configuration["Mural:Senha"] ?? "";
+
+builder.Services.AddSingleton(repo);
+builder.Services.AddSingleton(new Curadoria(builder.Configuration["Mural:Senha"] ?? ""));
+builder.Services.AddSingleton(new Contas(pastaDados));
+builder.Services.AddSingleton(new Comentarios(pastaDados));
+
+// Login das contas com cookie. As "chaves" do cookie ficam em dados/chaves,
+// assim ninguém é deslogado quando o MonsterASP reinicia o site.
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(pastaDados, "chaves")))
+    .SetApplicationName("mural-anime");
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(o =>
+    {
+        o.Cookie.Name = "mural-conta";
+        o.Cookie.HttpOnly = true;
+        o.Cookie.SameSite = SameSiteMode.Lax;
+        o.ExpireTimeSpan = TimeSpan.FromDays(90);
+        o.SlidingExpiration = true;
+        // É uma API: em vez de mandar para uma página de login, responde 401.
+        o.Events.OnRedirectToLogin = c => { c.Response.StatusCode = 401; return Task.CompletedTask; };
+        o.Events.OnRedirectToAccessDenied = c => { c.Response.StatusCode = 403; return Task.CompletedTask; };
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -32,26 +55,12 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/midia",
     OnPrepareResponse = c => c.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable",
 });
-
-// ---------- Senha da curadora ----------
-bool SenhaCorreta(string? tentativa)
-{
-    if (senhaConfigurada.Length == 0 || string.IsNullOrEmpty(tentativa)) return false;
-    var a = SHA256.HashData(Encoding.UTF8.GetBytes(tentativa));
-    var b = SHA256.HashData(Encoding.UTF8.GetBytes(senhaConfigurada));
-    return CryptographicOperations.FixedTimeEquals(a, b);
-}
-
-async Task<IResult?> ExigirSenha(HttpContext ctx)
-{
-    if (senhaConfigurada.Length == 0)
-        return Results.Problem("A senha da curadora ainda não foi configurada no servidor.", statusCode: 503);
-    if (SenhaCorreta(ctx.Request.Headers["X-Mural-Senha"])) return null;
-    await Task.Delay(1000); // deixa tentativas de adivinhar a senha bem lentas
-    return Results.Problem("Senha incorreta.", statusCode: 401);
-}
+app.UseAuthentication();
+app.UseAuthorization();
 
 var api = app.MapGroup("/api");
+api.MapContas();
+api.MapComentarios();
 
 api.MapGet("/albuns", async (HttpContext ctx) =>
 {
@@ -59,18 +68,18 @@ api.MapGet("/albuns", async (HttpContext ctx) =>
     return Results.Ok(await repo.Ler());
 });
 
-api.MapPost("/entrar", async (Entrada entrada) =>
+api.MapPost("/entrar", async (Entrada entrada, Curadoria curadoria) =>
 {
-    if (senhaConfigurada.Length == 0)
+    if (!curadoria.Configurada)
         return Results.Problem("A senha da curadora ainda não foi configurada no servidor.", statusCode: 503);
-    if (SenhaCorreta(entrada.Senha)) return Results.NoContent();
+    if (curadoria.Confere(entrada.Senha)) return Results.NoContent();
     await Task.Delay(1000);
     return Results.Problem("Senha incorreta.", statusCode: 401);
 });
 
-api.MapPost("/albuns", async (HttpContext ctx, NovoAlbum novo) =>
+api.MapPost("/albuns", async (HttpContext ctx, NovoAlbum novo, Curadoria curadoria) =>
 {
-    if (await ExigirSenha(ctx) is { } negado) return negado;
+    if (await curadoria.Exigir(ctx) is { } negado) return negado;
     var titulo = (novo.Titulo ?? "").Trim();
     if (titulo.Length is 0 or > 80) return Results.Problem("Dê um nome ao álbum (até 80 letras).", statusCode: 400);
 
@@ -86,19 +95,15 @@ api.MapPost("/albuns", async (HttpContext ctx, NovoAlbum novo) =>
     return Results.Created($"/api/albuns/{album.Id}", album);
 });
 
-api.MapPost("/albuns/{albumId}/cenas", async (HttpContext ctx, string albumId) =>
+api.MapPost("/albuns/{albumId}/cenas", async (HttpContext ctx, string albumId, Curadoria curadoria) =>
 {
-    if (await ExigirSenha(ctx) is { } negado) return negado;
+    if (await curadoria.Exigir(ctx) is { } negado) return negado;
     var form = await ctx.Request.ReadFormAsync();
     var foto = form.Files["foto"];
     if (foto is null || foto.Length == 0) return Results.Problem("Escolha uma foto.", statusCode: 400);
     if (foto.Length > TamanhoMaximo) return Results.Problem("A foto passou de 8 MB.", statusCode: 400);
 
-    // Confere pelos primeiros bytes se é mesmo uma imagem (não confia no nome do arquivo).
-    var cabecalho = new byte[12];
-    await using (var leitura = foto.OpenReadStream())
-        _ = await leitura.ReadAtLeastAsync(cabecalho, cabecalho.Length, throwOnEndOfStream: false);
-    var extensao = TipoDaImagem(cabecalho);
+    var extensao = await Imagens.Extensao(foto);
     if (extensao is null) return Results.Problem("Esse arquivo não é uma imagem JPG, PNG ou WebP.", statusCode: 400);
 
     var cores = (form["cores"].ToString())
@@ -107,23 +112,21 @@ api.MapPost("/albuns/{albumId}/cenas", async (HttpContext ctx, string albumId) =
         .Select(c => c.ToUpperInvariant())
         .Take(6)
         .ToList();
-    var anime = Limitar(form["anime"].ToString(), 80);
-    var comentario = Limitar(form["comentario"].ToString(), 500);
+    var anime = Texto.Limitar(form["anime"], 80);
+    var comentario = Texto.Limitar(form["comentario"], 500);
 
     var albuns = await repo.Ler();
     if (albuns.All(a => a.Id != albumId)) return Results.Problem("Álbum não encontrado.", statusCode: 404);
 
     var cenaId = $"{Repositorio.Slug(anime.Length > 0 ? anime : "cena")}-{Guid.NewGuid().ToString("N")[..6]}";
-    var pastaAlbum = Path.Combine(repo.PastaMidia, albumId);
-    Directory.CreateDirectory(pastaAlbum);
     var nomeArquivo = cenaId + extensao;
-    await using (var destino = File.Create(Path.Combine(pastaAlbum, nomeArquivo)))
-        await foto.CopyToAsync(destino);
+    var url = $"midia/{albumId}/{nomeArquivo}";
+    await Imagens.Salvar(foto, Path.Combine(repo.PastaMidia, albumId, nomeArquivo));
 
     var item = new Item
     {
         Id = cenaId,
-        Url = $"midia/{albumId}/{nomeArquivo}",
+        Url = url,
         Anime = anime,
         Comentario = comentario,
         Cores = cores,
@@ -139,15 +142,16 @@ api.MapPost("/albuns/{albumId}/cenas", async (HttpContext ctx, string albumId) =
     });
     if (!salvo)
     {
-        File.Delete(Path.Combine(pastaAlbum, nomeArquivo));
+        repo.ApagarMidia(url);
         return Results.Problem("Álbum não encontrado.", statusCode: 404);
     }
     return Results.Created($"/api/albuns/{albumId}/cenas/{item.Id}", item);
 }).DisableAntiforgery();
 
-api.MapDelete("/albuns/{albumId}/cenas/{cenaId}", async (HttpContext ctx, string albumId, string cenaId) =>
+api.MapDelete("/albuns/{albumId}/cenas/{cenaId}", async (HttpContext ctx, string albumId, string cenaId,
+    Curadoria curadoria, Comentarios comentarios) =>
 {
-    if (await ExigirSenha(ctx) is { } negado) return negado;
+    if (await curadoria.Exigir(ctx) is { } negado) return negado;
     var removido = await repo.Alterar(lista =>
     {
         var album = lista.FirstOrDefault(a => a.Id == albumId);
@@ -159,12 +163,9 @@ api.MapDelete("/albuns/{albumId}/cenas/{cenaId}", async (HttpContext ctx, string
     });
     if (removido is null) return Results.Problem("Cena não encontrada.", statusCode: 404);
 
-    // Apaga a foto só se ela foi enviada pelo site (as de exemplo ficam).
-    if (removido.Url.StartsWith("midia/"))
-    {
-        var caminho = Path.GetFullPath(Path.Combine(repo.PastaMidia, removido.Url["midia/".Length..]));
-        if (caminho.StartsWith(Path.GetFullPath(repo.PastaMidia)) && File.Exists(caminho)) File.Delete(caminho);
-    }
+    // Apaga a foto só se ela foi enviada pelo site (as de exemplo ficam), e os comentários da cena.
+    repo.ApagarMidia(removido.Url);
+    await comentarios.Alterar(lista => lista.RemoveAll(c => c.AlbumId == albumId && c.CenaId == cenaId));
     return Results.NoContent();
 });
 
@@ -172,17 +173,3 @@ api.MapDelete("/albuns/{albumId}/cenas/{cenaId}", async (HttpContext ctx, string
 app.MapFallbackToFile("index.html");
 
 app.Run();
-
-static string? TipoDaImagem(byte[] b)
-{
-    if (b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF) return ".jpg";
-    if (b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47) return ".png";
-    if (b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F' && b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P') return ".webp";
-    return null;
-}
-
-static string Limitar(string texto, int maximo)
-{
-    texto = texto.Trim();
-    return texto.Length > maximo ? texto[..maximo] : texto;
-}

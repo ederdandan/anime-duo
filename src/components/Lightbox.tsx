@@ -4,6 +4,7 @@ import { caminho } from '../lib/caminho'
 import { apagarCena, senhaSalva } from '../lib/api'
 import { useAlbuns } from '../lib/albuns'
 import Paleta from './Paleta'
+import Comentarios from './Comentarios'
 import type { Item } from '../types'
 
 interface Props {
@@ -37,6 +38,9 @@ export default function Lightbox({ albumId, itens, indice, onTrocar, onFechar }:
   // Teclado no computador: setas trocam, Esc fecha
   useEffect(() => {
     function tecla(e: KeyboardEvent) {
+      // Enquanto escreve um comentário, as setas mexem no texto (não trocam a cena).
+      const alvo = e.target as HTMLElement
+      if (alvo.closest('input, textarea, select')) return
       if (e.key === 'Escape') onFechar()
       if (e.key === 'ArrowLeft') anterior()
       if (e.key === 'ArrowRight') proxima()
@@ -116,6 +120,8 @@ export default function Lightbox({ albumId, itens, indice, onTrocar, onFechar }:
           </div>
 
           <p className="text-center text-xs text-white/60">Deslize para o lado para trocar · para baixo para fechar</p>
+
+          {temServidor && <Comentarios key={item.id} albumId={albumId} cenaId={item.id} />}
 
           {podeApagar && (
             <div className="flex flex-wrap items-center justify-center gap-3 text-sm">

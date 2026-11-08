@@ -17,12 +17,30 @@ export async function prepararFoto(arquivo: File): Promise<{ foto: Blob; nomeArq
   const cores = extrairCores(bitmap)
   bitmap.close()
 
-  // WebP quando o navegador sabe gerar; senão JPEG.
+  return { ...(await comprimir(canvas)), cores }
+}
+
+// Foto de perfil: recorta um quadrado do meio e diminui para 400x400.
+export async function prepararFotoPerfil(arquivo: File): Promise<{ foto: Blob; nomeArquivo: string }> {
+  const bitmap = await createImageBitmap(arquivo)
+  const lado = Math.min(bitmap.width, bitmap.height)
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = Math.min(400, lado)
+  canvas.getContext('2d')!.drawImage(
+    bitmap,
+    (bitmap.width - lado) / 2, (bitmap.height - lado) / 2, lado, lado,
+    0, 0, canvas.width, canvas.height,
+  )
+  bitmap.close()
+  return comprimir(canvas)
+}
+
+// WebP quando o navegador sabe gerar; senão JPEG.
+async function comprimir(canvas: HTMLCanvasElement): Promise<{ foto: Blob; nomeArquivo: string }> {
   let foto = await paraBlob(canvas, 'image/webp', 0.82)
   if (!foto || foto.type !== 'image/webp') foto = await paraBlob(canvas, 'image/jpeg', 0.85)
   if (!foto) throw new Error('Não consegui preparar essa foto.')
-  const nomeArquivo = foto.type === 'image/webp' ? 'foto.webp' : 'foto.jpg'
-  return { foto, nomeArquivo, cores }
+  return { foto, nomeArquivo: foto.type === 'image/webp' ? 'foto.webp' : 'foto.jpg' }
 }
 
 function paraBlob(canvas: HTMLCanvasElement, tipo: string, qualidade: number): Promise<Blob | null> {

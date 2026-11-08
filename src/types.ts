@@ -15,3 +15,26 @@ export interface Album {
   capa: string
   itens: Item[]
 }
+
+// Quem se cadastrou para comentar
+export type Situacao = 'aguardando' | 'liberada' | 'recusada'
+
+export interface Conta {
+  id: string
+  nome: string
+  foto: string         // caminho da foto de perfil (ex.: "midia/perfis/abc.webp")
+  situacao: Situacao   // a curadora libera ou recusa
+}
+
+export interface ContaCuradoria extends Conta {
+  email: string
+  criadaEm: string
+}
+
+export interface Comentario {
+  id: string
+  respostaDe: string | null   // id do comentário "pai"; null = comentário direto na cena
+  texto: string
+  criadoEm: string
+  autor: Conta
+}

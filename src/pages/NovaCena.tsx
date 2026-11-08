@@ -2,13 +2,13 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useAlbuns } from '../lib/albuns'
-import { criarAlbum, criarCena, entrar, salvarSenha, senhaSalva } from '../lib/api'
+import { criarAlbum, criarCena, salvarSenha, senhaSalva } from '../lib/api'
+import { campo, rotulo, voltar } from '../lib/estilos'
+import EntrarCuradora from '../components/EntrarCuradora'
 import { prepararFoto } from '../lib/imagem'
 import Carregando from '../components/Carregando'
 
 const NOVO = '__novo__'
-const campo = 'w-full rounded-2xl border border-borda-forte bg-white px-4 py-3 text-base text-ameixa outline-none focus:border-rosa focus:ring-2 focus:ring-petala'
-const rotulo = 'mb-1.5 block font-bold text-rosa-escuro'
 
 export default function NovaCena() {
   const { albuns, temServidor } = useAlbuns()
@@ -18,7 +18,7 @@ export default function NovaCena() {
     <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
       <Link
         to="/"
-        className="inline-flex min-h-11 items-center gap-1 rounded-full bg-white px-4 text-sm text-rosa-suave shadow-[0_0_0_1px_var(--color-borda-forte)]"
+        className={voltar}
       >
         ← Álbuns
       </Link>
@@ -37,47 +37,12 @@ export default function NovaCena() {
             Aqui só dá para ver o mural. Para criar cenas, use o endereço do site no MonsterASP.
           </p>
         ) : !logada ? (
-          <Entrar onEntrou={() => setLogada(true)} />
+          <EntrarCuradora onEntrou={() => setLogada(true)} />
         ) : (
           <Formulario onSair={() => { salvarSenha(null); setLogada(false) }} />
         )}
       </div>
     </motion.main>
-  )
-}
-
-function Entrar({ onEntrou }: { onEntrou: () => void }) {
-  const [senha, setSenha] = useState('')
-  const [erro, setErro] = useState('')
-  const [enviando, setEnviando] = useState(false)
-
-  async function enviar(e: FormEvent) {
-    e.preventDefault()
-    setEnviando(true)
-    setErro('')
-    try {
-      await entrar(senha)
-      salvarSenha(senha)
-      onEntrou()
-    } catch (err) {
-      setErro((err as Error).message)
-    } finally {
-      setEnviando(false)
-    }
-  }
-
-  return (
-    <form onSubmit={enviar} className="moldura-dupla flex flex-col gap-4 rounded-3xl p-6">
-      <div>
-        <label htmlFor="senha" className={rotulo}>Senha da curadora</label>
-        <input id="senha" type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} className={campo} required />
-        <p className="mt-2 text-sm text-rosa-suave">Você só precisa digitar uma vez neste celular.</p>
-      </div>
-      {erro && <p className="text-sm font-bold text-rosa" role="alert">{erro}</p>}
-      <button type="submit" disabled={enviando} className="min-h-12 rounded-full bg-rosa font-bold text-white disabled:opacity-60">
-        {enviando ? 'Conferindo…' : 'Entrar'}
-      </button>
-    </form>
   )
 }
 

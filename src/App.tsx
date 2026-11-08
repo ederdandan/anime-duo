@@ -5,6 +5,8 @@ import Rodape from './components/Rodape'
 import Home from './pages/Home'
 import Galeria from './pages/Galeria'
 import NovaCena from './pages/NovaCena'
+import ContaPagina from './pages/Conta'
+import Curadoria from './pages/Curadoria'
 
 export default function App() {
   const location = useLocation()
@@ -19,6 +21,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/album/:id" element={<Galeria />} />
             <Route path="/nova" element={<NovaCena />} />
+            <Route path="/conta" element={<ContaPagina />} />
+            <Route path="/curadoria" element={<Curadoria />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </AnimatePresence>

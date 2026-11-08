@@ -1,59 +1,31 @@
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Mural;
 
 // Guarda os álbuns em dados/albuns.json e as fotos em dados/midia/<álbum>/.
-public partial class Repositorio
+public partial class Repositorio : ArquivoJson<List<Album>>
 {
-    static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
-    readonly SemaphoreSlim trava = new(1, 1);
-    readonly string arquivo;
-
     public string PastaMidia { get; }
 
-    public Repositorio(string pastaDados, string semente)
+    public Repositorio(string pastaDados, string semente) : base(Path.Combine(pastaDados, "albuns.json"))
     {
-        Directory.CreateDirectory(pastaDados);
         PastaMidia = Path.Combine(pastaDados, "midia");
         Directory.CreateDirectory(PastaMidia);
-        arquivo = Path.Combine(pastaDados, "albuns.json");
 
         // Primeira vez: começa com os álbuns de exemplo.
         if (!File.Exists(arquivo) && File.Exists(semente))
             File.Copy(semente, arquivo);
     }
 
-    public async Task<List<Album>> Ler()
+    // Apaga um arquivo que está dentro de midia/ (nunca fora dela).
+    public void ApagarMidia(string url)
     {
-        await trava.WaitAsync();
-        try { return await LerSemTrava(); }
-        finally { trava.Release(); }
-    }
-
-    // Lê, deixa a função mudar a lista e salva, tudo sem ninguém mexer no meio.
-    public async Task<T> Alterar<T>(Func<List<Album>, T> mudanca)
-    {
-        await trava.WaitAsync();
-        try
-        {
-            var albuns = await LerSemTrava();
-            var resultado = mudanca(albuns);
-            var temporario = arquivo + ".tmp";
-            await File.WriteAllTextAsync(temporario, JsonSerializer.Serialize(albuns, Json));
-            File.Move(temporario, arquivo, overwrite: true);
-            return resultado;
-        }
-        finally { trava.Release(); }
-    }
-
-    async Task<List<Album>> LerSemTrava()
-    {
-        if (!File.Exists(arquivo)) return [];
-        await using var fluxo = File.OpenRead(arquivo);
-        return await JsonSerializer.DeserializeAsync<List<Album>>(fluxo, Json) ?? [];
+        if (!url.StartsWith("midia/")) return;
+        var raiz = Path.GetFullPath(PastaMidia) + Path.DirectorySeparatorChar;
+        var caminho = Path.GetFullPath(Path.Combine(PastaMidia, url["midia/".Length..]));
+        if (caminho.StartsWith(raiz) && File.Exists(caminho)) File.Delete(caminho);
     }
 
     // "Céus de Shinkai!" -> "ceus-de-shinkai"

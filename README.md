@@ -9,6 +9,7 @@ A ideia completa está em [ideia.md](ideia.md).
 - **Site** (pasta `src/`): React + Tailwind, no estilo Shoujo.
 - **Servidor** (pasta `server/`): C# / ASP.NET Core. Entrega o site, guarda os álbuns e recebe as fotos enviadas pela tela **✦ Nova cena**.
 - No servidor, as cenas criadas pelo site ficam em `dados/albuns.json` e as fotos em `dados/midia/<álbum>/`. Na primeira vez, ele começa com os álbuns de exemplo de `src/data/albuns.json`.
+- Contas e comentários também ficam em `dados/` (veja [Comentários](#comentários)).
 
 ## Rodar no computador
 
@@ -34,6 +35,19 @@ Abra http://localhost:5173. A senha da tela "Nova cena" no computador é `sakura
 3. Escolha o álbum (ou crie um novo), a foto, escreva o comentário e toque em **Criar cena ✦**.
 
 O site diminui a foto antes de enviar e descobre as cores sozinho. Para apagar uma cena, abra a cena em tela cheia e toque em **Apagar cena**.
+
+## Comentários
+
+Quem visita o mural pode comentar nas cenas e responder aos comentários (respostas dentro de respostas, sem limite). Mas só depois que a curadora liberar.
+
+1. A pessoa toca em **Entrar para comentar**, no rodapé, e cria uma conta com nome, e-mail, senha e foto de perfil.
+2. A conta fica **esperando liberação**. Ainda não dá para comentar.
+3. A curadora abre **Curadoria** no rodapé (aparece depois que ela digitou a senha neste celular) e toca em **Liberar ✦** ou **Recusar**.
+4. Com a conta liberada, os comentários aparecem embaixo da cena em tela cheia.
+
+A curadora pode apagar qualquer comentário, e cada pessoa pode apagar os seus. Apagar um comentário apaga também as respostas a ele. Recusar ou apagar uma conta tira os comentários dela do mural.
+
+No servidor, as contas ficam em `dados/contas.json` (a senha fica guardada só "embaralhada", nunca a senha em si), os comentários em `dados/comentarios.json` e as fotos de perfil em `dados/midia/perfis/`. O e-mail só aparece para a curadora.
 
 ## Mudar o conteúdo pelos arquivos
 
