@@ -9,6 +9,7 @@ namespace Mural;
 // Cadastro com e-mail e foto, entrar/sair, e a tela da curadora para liberar contas.
 public static class RotasContas
 {
+    const string SoCuradoria = "Só a curadoria pode fazer isso.";
     const long FotoMaxima = 2 * 1024 * 1024; // o site já diminui a foto de perfil para 400px
     static readonly PasswordHasher<Conta> Embaralhador = new();
 
@@ -84,25 +85,32 @@ public static class RotasContas
         });
 
         // ---------- Só a curadora ----------
-        api.MapGet("/curadoria/contas", async (HttpContext ctx, Curadoria curadoria, Contas contas) =>
+        api.MapGet("/curadoria/contas", async (HttpContext ctx, Permissoes permissoes, Contas contas) =>
         {
-            if (await curadoria.Exigir(ctx) is { } negado) return negado;
+            var quem = await permissoes.De(ctx);
+            if (!quem.Curadora) return quem.Negado(SoCuradoria);
             ctx.Response.Headers.CacheControl = "no-store";
             var lista = await contas.Ler();
             return Results.Ok(lista.OrderByDescending(c => c.CriadaEm).Select(ContaCuradoria.De));
         });
 
         api.MapPost("/curadoria/contas/{id}/situacao", async (HttpContext ctx, string id, NovaSituacao nova,
-            Curadoria curadoria, Contas contas, Comentarios comentarios) =>
+            Permissoes permissoes, Contas contas, Comentarios comentarios) =>
         {
-            if (await curadoria.Exigir(ctx) is { } negado) return negado;
+            var quem = await permissoes.De(ctx);
+            if (!quem.Curadora) return quem.Negado(SoCuradoria);
+            if (id == quem.ContaId) return Erro("Você não pode mudar a situação da sua própria conta.");
             if (nova.Situacao is not (Situacoes.Liberada or Situacoes.Recusada or Situacoes.Aguardando))
                 return Erro("Situação inválida.");
 
             var conta = await contas.Alterar(lista =>
             {
                 var c = lista.FirstOrDefault(c => c.Id == id);
-                if (c is not null) c.Situacao = nova.Situacao;
+                if (c is not null)
+                {
+                    c.Situacao = nova.Situacao;
+                    if (c.Situacao != Situacoes.Liberada) c.Curadoria = false; // só conta liberada fica na curadoria
+                }
                 return c;
             });
             if (conta is null) return Erro("Conta não encontrada.", 404);
@@ -113,10 +121,36 @@ public static class RotasContas
             return Results.Ok(ContaCuradoria.De(conta));
         });
 
-        api.MapDelete("/curadoria/contas/{id}", async (HttpContext ctx, string id,
-            Curadoria curadoria, Contas contas, Comentarios comentarios, Repositorio repo) =>
+        // Pôr ou tirar uma conta (liberada) da curadoria.
+        api.MapPost("/curadoria/contas/{id}/curadoria", async (HttpContext ctx, string id, NovoCargo novo,
+            Permissoes permissoes, Contas contas) =>
         {
-            if (await curadoria.Exigir(ctx) is { } negado) return negado;
+            var quem = await permissoes.De(ctx);
+            if (!quem.Curadora) return quem.Negado(SoCuradoria);
+            if (id == quem.ContaId) return Erro("Você não pode tirar a sua própria conta da curadoria.");
+
+            var resultado = await contas.Alterar(lista =>
+            {
+                var c = lista.FirstOrDefault(c => c.Id == id);
+                if (c is null) return (404, (Conta?)null);
+                if (novo.Curadoria && c.Situacao != Situacoes.Liberada) return (400, c);
+                c.Curadoria = novo.Curadoria;
+                return (200, c);
+            });
+            return resultado switch
+            {
+                (404, _) => Erro("Conta não encontrada.", 404),
+                (400, _) => Erro("Libere a conta antes de colocar na curadoria."),
+                (_, var c) => Results.Ok(ContaCuradoria.De(c!)),
+            };
+        });
+
+        api.MapDelete("/curadoria/contas/{id}", async (HttpContext ctx, string id,
+            Permissoes permissoes, Contas contas, Comentarios comentarios, Repositorio repo) =>
+        {
+            var quem = await permissoes.De(ctx);
+            if (!quem.Curadora) return quem.Negado(SoCuradoria);
+            if (id == quem.ContaId) return Erro("Você não pode apagar a sua própria conta por aqui.");
             var conta = await contas.Alterar(lista =>
             {
                 var c = lista.FirstOrDefault(c => c.Id == id);

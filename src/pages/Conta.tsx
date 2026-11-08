@@ -7,6 +7,7 @@ import { useConta } from '../lib/conta'
 import { prepararFotoPerfil } from '../lib/imagem'
 import { botaoPrincipal, campo, rotulo, voltar } from '../lib/estilos'
 import Avatar from '../components/Avatar'
+import SeloCuradoria from '../components/SeloCuradoria'
 import Carregando from '../components/Carregando'
 
 // Tela "Minha conta": entrar, se cadastrar (com e-mail e foto) e ver se já foi liberada para comentar.
@@ -59,6 +60,12 @@ function MinhaConta() {
     <div className="moldura-dupla flex flex-col items-center gap-4 rounded-3xl p-6 text-center">
       <Avatar conta={conta} tamanho="size-24" />
       <p className="font-titulo text-2xl text-rosa">{conta.nome}</p>
+      {conta.curadoria && conta.situacao === 'liberada' && (
+        <div className="flex flex-col items-center gap-2">
+          <SeloCuradoria />
+          <Link to="/curadoria" className="text-sm font-bold text-rosa underline">Abrir a curadoria</Link>
+        </div>
+      )}
       <p className={`rounded-2xl px-4 py-3 ${conta.situacao === 'liberada' ? 'bg-[#E8F6EC] text-[#2F6B43]' : 'bg-pessego'}`}>
         {avisos[conta.situacao]}
       </p>

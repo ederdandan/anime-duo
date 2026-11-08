@@ -1,18 +1,21 @@
 namespace Mural;
 
-// Descobre "quem está pedindo": a curadora (pela senha) e/ou uma conta logada (pelo cookie).
+// Descobre "quem está pedindo": a curadoria (pela senha OU por uma conta da curadoria)
+// e/ou uma conta logada (pelo cookie).
 public class Permissoes(Curadoria curadoria, Contas contas)
 {
     public async Task<Quem> De(HttpContext ctx)
     {
         var senha = ctx.Request.Headers["X-Mural-Senha"].ToString();
-        var curadora = curadoria.Confere(senha);
-        var senhaErrada = senha.Length > 0 && !curadora;
+        var senhaCerta = curadoria.Confere(senha);
+        var senhaErrada = senha.Length > 0 && !senhaCerta;
         if (senhaErrada) await Task.Delay(1000); // deixa tentativas de adivinhar a senha bem lentas
 
         var id = ctx.ContaLogada();
         var conta = id is null ? null : (await contas.Ler()).FirstOrDefault(c => c.Id == id);
-        return new Quem(curadora, senhaErrada, conta);
+        // Conta da curadoria só vale enquanto estiver liberada.
+        var contaDaCuradoria = conta is { Situacao: Situacoes.Liberada, Curadoria: true };
+        return new Quem(senhaCerta || contaDaCuradoria, senhaErrada, conta);
     }
 }
 

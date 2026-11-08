@@ -156,6 +156,15 @@ export async function mudarSituacao(id: string, situacao: Situacao): Promise<voi
   if (!r.ok) throw await erroDe(r)
 }
 
+export async function mudarCuradoria(id: string, curadoria: boolean): Promise<void> {
+  const r = await fetch(caminho(`api/curadoria/contas/${encodeURIComponent(id)}/curadoria`), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...cabecalhoSenha() },
+    body: JSON.stringify({ curadoria }),
+  })
+  if (!r.ok) throw await erroDe(r)
+}
+
 export async function apagarConta(id: string): Promise<void> {
   const r = await fetch(caminho(`api/curadoria/contas/${encodeURIComponent(id)}`), { method: 'DELETE', headers: cabecalhoSenha() })
   if (!r.ok) throw await erroDe(r)

@@ -63,7 +63,7 @@ export default function NovaCena() {
               </Link>
             )}
             <button type="button" onClick={() => setMostrarCuradora(true)} className="text-sm text-rosa-suave underline">
-              Sou a curadora
+              Usar a senha da curadoria
             </button>
           </div>
         )}
@@ -74,7 +74,7 @@ export default function NovaCena() {
 
 function Formulario({ onSair }: { onSair: () => void }) {
   const { albuns, recarregar } = useAlbuns()
-  const { podeMexer, curadora } = usePermissoes()
+  const { podeMexer, porSenha } = usePermissoes()
   const navigate = useNavigate()
   const [params] = useSearchParams()
 
@@ -176,7 +176,7 @@ function Formulario({ onSair }: { onSair: () => void }) {
         {estado === 'enviando' ? 'Publicando… ✦' : 'Criar cena ✦'}
       </button>
 
-      {curadora && (
+      {porSenha && (
         <button type="button" onClick={onSair} className="self-center text-sm text-rosa-suave underline">
           Sair da curadoria neste celular
         </button>

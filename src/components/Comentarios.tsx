@@ -5,6 +5,7 @@ import { usePermissoes } from '../lib/permissoes'
 import { useConta } from '../lib/conta'
 import { botaoPrincipal, campo } from '../lib/estilos'
 import Avatar from './Avatar'
+import SeloCuradoria from './SeloCuradoria'
 import type { Album, Comentario } from '../types'
 
 // Comentários de uma cena, com respostas dentro de respostas.
@@ -76,6 +77,7 @@ export default function Comentarios({ album, cenaId }: { album: Album; cenaId: s
               <div className="min-w-0 flex-1">
                 <p className="text-sm">
                   <span className="font-bold text-rosa-escuro">{c.autor.nome}</span>{' '}
+                  {c.autor.curadoria && <><SeloCuradoria />{' '}</>}
                   <span className="text-xs text-rosa-suave">{quando(c.criadoEm)}{c.editadoEm && ' · editado'}</span>
                 </p>
                 {aberto?.id === c.id && aberto.modo === 'editar' ? (

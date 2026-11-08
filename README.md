@@ -30,10 +30,10 @@ Abra http://localhost:5173. A senha da tela "Nova cena" no computador é `sakura
 
 ## Postar cenas pelo site
 
-Quem pode postar: a **curadora** (com a senha) e qualquer **conta liberada** por ela.
+Quem pode postar: a **curadoria** e qualquer **conta liberada** por ela.
 
 1. No rodapé do mural, toque em **✦ Nova cena**.
-2. Entre com a sua conta (ou, se for a curadora, toque em **Sou a curadora** e digite a senha; só precisa uma vez em cada celular).
+2. Entre com a sua conta (ou toque em **Usar a senha da curadoria** e digite a senha; só precisa uma vez em cada celular).
 3. Escolha o álbum (ou crie um novo), a foto, escreva o comentário e toque em **Criar cena ✦**.
 
 Quem cria um álbum com a conta vira a **dona** dele: o nome e a foto dela aparecem no topo do álbum. Só a dona do álbum e a curadora podem colocar cenas nele, editar e apagar. Os álbuns criados só com a senha da curadora (e os de exemplo) não têm dona: só a curadora mexe neles.
@@ -53,13 +53,24 @@ Para mudar textos depois:
 
 Para apagar uma cena, abra a cena em tela cheia e toque em **Apagar cena**.
 
+## Curadoria
+
+A curadoria libera contas, edita e apaga qualquer coisa no mural. Dá para fazer parte dela de dois jeitos:
+
+- **Com uma conta da curadoria (o jeito normal):** a pessoa entra com o próprio e-mail e senha. Na tela **Curadoria**, quem já é da curadoria toca em **Pôr na curadoria ✦** numa conta liberada (ou **Tirar da curadoria**). Quem faz parte ganha o selo "✦ curadoria" nos comentários.
+- **Com a senha da curadoria (reserva):** é o Secret `MURAL_SENHA`. Serve para colocar a primeira conta na curadoria e para emergências. Na tela Curadoria, toque em **Usar a senha da curadoria**.
+
+Ninguém consegue tirar, recusar ou apagar a própria conta pela curadoria; outra pessoa da curadoria precisa fazer isso. Recusar uma conta tira ela da curadoria também.
+
+**Primeira vez:** cada pessoa cria a sua conta; depois, alguém abre a Curadoria com a senha, libera as contas e toca em **Pôr na curadoria ✦** em quem deve cuidar do mural.
+
 ## Comentários
 
 Quem visita o mural pode comentar nas cenas e responder aos comentários (respostas dentro de respostas, sem limite). Mas só depois que a curadora liberar.
 
 1. A pessoa toca em **Entrar para comentar**, no rodapé, e cria uma conta com nome, e-mail, senha e foto de perfil.
 2. A conta fica **esperando liberação**. Ainda não dá para comentar.
-3. A curadora abre **Curadoria** no rodapé (aparece depois que ela digitou a senha neste celular) e toca em **Liberar ✦** ou **Recusar**.
+3. A curadoria abre **Curadoria** no rodapé e toca em **Liberar ✦** ou **Recusar**.
 4. Com a conta liberada, os comentários aparecem embaixo da cena em tela cheia.
 
 Cada pessoa pode **editar** e apagar os seus comentários (aparece "· editado" ao lado da data). A **dona do álbum** pode apagar comentários indesejados no álbum dela, e a curadora pode apagar qualquer um. Apagar um comentário apaga também as respostas a ele. Recusar ou apagar uma conta tira os comentários dela do mural.

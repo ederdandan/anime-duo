@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAlbuns } from '../lib/albuns'
 import { useConta } from '../lib/conta'
-import { senhaSalva } from '../lib/api'
+import { usePermissoes } from '../lib/permissoes'
 import Avatar from './Avatar'
 
 const pilula = 'inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-5 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]'
@@ -9,7 +9,7 @@ const pilula = 'inline-flex min-h-11 items-center gap-2 rounded-full bg-white px
 export default function Rodape() {
   const { temServidor } = useAlbuns()
   const { conta } = useConta()
-  const curadora = !!senhaSalva()
+  const { curadora } = usePermissoes()
 
   return (
     <footer className="mt-auto flex flex-col items-center gap-3 pt-12 text-center text-sm text-rosa-suave">

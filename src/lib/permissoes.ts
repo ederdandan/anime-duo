@@ -7,11 +7,14 @@ import type { Album } from '../types'
 export function usePermissoes() {
   const { temServidor } = useAlbuns()
   const { conta } = useConta()
-  const curadora = temServidor && !!senhaSalva()
   const liberada = temServidor && conta?.situacao === 'liberada'
+  // Curadoria: pela senha salva neste celular OU por uma conta liberada que faz parte da curadoria
+  const porSenha = temServidor && !!senhaSalva()
+  const curadora = porSenha || (liberada && !!conta?.curadoria)
 
   return {
     curadora,
+    porSenha,
     liberada,
     // Pode criar álbuns e postar cenas
     podePostar: curadora || liberada,

@@ -29,6 +29,7 @@ public class Conta
     public string SenhaHash { get; set; } = "";  // nunca a senha em si, só o "embaralhado" dela
     public string Foto { get; set; } = "";
     public string Situacao { get; set; } = Situacoes.Aguardando;
+    public bool Curadoria { get; set; }  // faz parte da curadoria: tem os mesmos poderes da senha da curadora
     public DateTimeOffset CriadaEm { get; set; }
 }
 
@@ -73,15 +74,15 @@ public class Comentarios(string pastaDados) : ArquivoJson<List<Comentario>>(Path
 }
 
 // O que o site recebe (sem e-mail nem senha).
-public record ContaPublica(string Id, string Nome, string Foto, string Situacao)
+public record ContaPublica(string Id, string Nome, string Foto, string Situacao, bool Curadoria)
 {
-    public static ContaPublica De(Conta c) => new(c.Id, c.Nome, c.Foto, c.Situacao);
+    public static ContaPublica De(Conta c) => new(c.Id, c.Nome, c.Foto, c.Situacao, c.Curadoria);
 }
 
 // O que a curadora vê na tela de curadoria.
-public record ContaCuradoria(string Id, string Nome, string Email, string Foto, string Situacao, DateTimeOffset CriadaEm)
+public record ContaCuradoria(string Id, string Nome, string Email, string Foto, string Situacao, bool Curadoria, DateTimeOffset CriadaEm)
 {
-    public static ContaCuradoria De(Conta c) => new(c.Id, c.Nome, c.Email, c.Foto, c.Situacao, c.CriadaEm);
+    public static ContaCuradoria De(Conta c) => new(c.Id, c.Nome, c.Email, c.Foto, c.Situacao, c.Curadoria, c.CriadaEm);
 }
 
 public record ComentarioPublico(string Id, string? RespostaDe, string Texto, DateTimeOffset CriadoEm, DateTimeOffset? EditadoEm, ContaPublica Autor)
@@ -98,5 +99,6 @@ public record TextoCena(string? Anime, string? Comentario);
 public record Entrada(string? Senha);
 public record EntradaConta(string? Email, string? Senha);
 public record NovaSituacao(string? Situacao);
+public record NovoCargo(bool Curadoria);
 public record NovoComentario(string? Texto, string? RespostaDe);
 public record TextoComentario(string? Texto);

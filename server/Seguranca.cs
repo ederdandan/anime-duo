@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Mural;
 
-// A senha da curadora (a mesma da tela "Nova cena").
+// A senha da curadoria (o Secret MURAL_SENHA). Serve de reserva: contas da curadoria entram com o próprio login.
 public class Curadoria(string senha)
 {
     public bool Configurada => senha.Length > 0;
@@ -15,18 +15,6 @@ public class Curadoria(string senha)
         var a = SHA256.HashData(Encoding.UTF8.GetBytes(tentativa));
         var b = SHA256.HashData(Encoding.UTF8.GetBytes(senha));
         return CryptographicOperations.FixedTimeEquals(a, b);
-    }
-
-    public bool PedidoDaCuradora(HttpContext ctx) => Confere(ctx.Request.Headers["X-Mural-Senha"]);
-
-    // Devolve null se a senha está certa; senão, a resposta de erro.
-    public async Task<IResult?> Exigir(HttpContext ctx)
-    {
-        if (!Configurada)
-            return Results.Problem("A senha da curadora ainda não foi configurada no servidor.", statusCode: 503);
-        if (PedidoDaCuradora(ctx)) return null;
-        await Task.Delay(1000); // deixa tentativas de adivinhar a senha bem lentas
-        return Results.Problem("Senha incorreta.", statusCode: 401);
     }
 }
 

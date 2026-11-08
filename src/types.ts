@@ -26,6 +26,7 @@ export interface Conta {
   nome: string
   foto: string         // caminho da foto de perfil (ex.: "midia/perfis/abc.webp")
   situacao: Situacao   // a curadora libera ou recusa
+  curadoria?: boolean  // faz parte da curadoria (mesmos poderes da senha da curadora)
 }
 
 export interface ContaCuradoria extends Conta {
