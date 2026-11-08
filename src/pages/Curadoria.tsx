@@ -10,6 +10,7 @@ import Avatar from '../components/Avatar'
 import Carregando from '../components/Carregando'
 import EntrarCuradora from '../components/EntrarCuradora'
 import SeloCuradoria from '../components/SeloCuradoria'
+import { Historico, Lixeira } from '../components/LixeiraEHistorico'
 import type { ContaCuradoria, Situacao } from '../types'
 
 // Tela da curadoria: vê quem se cadastrou, libera (ou não) e escolhe quem também faz parte da curadoria.
@@ -37,7 +38,7 @@ export default function Curadoria() {
         {!albuns ? <Carregando /> : !temServidor ? (
           <p className="moldura-dupla rounded-3xl p-6 text-center">A curadoria só funciona no endereço do site no MonsterASP.</p>
         ) : curadora ? (
-          <ListaDeContas eu={conta?.id} porSenha={porSenha} onSairDaSenha={sairDaSenha} />
+          <Abas eu={conta?.id} porSenha={porSenha} onSairDaSenha={sairDaSenha} />
         ) : usarSenha ? (
           <EntrarCuradora onEntrou={() => atualizar((n) => n + 1)} />
         ) : (
@@ -48,7 +49,7 @@ export default function Curadoria() {
                 : 'Entre com uma conta que faz parte da curadoria.'}
             </p>
             {!conta && (
-              <Link to="/conta" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rosa font-bold text-white">
+              <Link to="/conta" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rosa font-bold text-on-rosa">
                 Entrar com minha conta
               </Link>
             )}
@@ -62,14 +63,45 @@ export default function Curadoria() {
   )
 }
 
+const abas = [
+  { id: 'contas', nome: 'Contas' },
+  { id: 'lixeira', nome: 'Lixeira' },
+  { id: 'historico', nome: 'Histórico' },
+] as const
+
+function Abas(props: { eu?: string; porSenha: boolean; onSairDaSenha: () => void }) {
+  const [aba, setAba] = useState<(typeof abas)[number]['id']>('contas')
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-3 gap-1 rounded-full bg-cartao p-1 shadow-[0_0_0_1px_var(--color-borda-forte)]" role="tablist">
+        {abas.map((a) => (
+          <button
+            key={a.id}
+            type="button"
+            role="tab"
+            aria-selected={aba === a.id}
+            onClick={() => setAba(a.id)}
+            className={`min-h-11 rounded-full text-sm font-bold ${aba === a.id ? 'bg-rosa text-on-rosa' : 'text-rosa-suave'}`}
+          >
+            {a.nome}
+          </button>
+        ))}
+      </div>
+      {aba === 'contas' && <ListaDeContas {...props} />}
+      {aba === 'lixeira' && <Lixeira />}
+      {aba === 'historico' && <Historico />}
+    </div>
+  )
+}
+
 const grupos: { situacao: Situacao; titulo: string; vazio: string }[] = [
   { situacao: 'aguardando', titulo: 'Esperando liberação', vazio: 'Ninguém esperando agora.' },
   { situacao: 'liberada', titulo: 'Liberadas', vazio: 'Nenhuma conta liberada ainda.' },
   { situacao: 'recusada', titulo: 'Recusadas', vazio: 'Nenhuma conta recusada.' },
 ]
 
-const botaoRosa = 'min-h-11 flex-1 rounded-full bg-rosa px-4 font-bold text-white'
-const botaoBranco = 'min-h-11 flex-1 rounded-full bg-white px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]'
+const botaoRosa = 'min-h-11 flex-1 rounded-full bg-rosa px-4 font-bold text-on-rosa'
+const botaoBranco = 'min-h-11 flex-1 rounded-full bg-cartao px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]'
 
 function ListaDeContas({ eu, porSenha, onSairDaSenha }: { eu?: string; porSenha: boolean; onSairDaSenha: () => void }) {
   const [contas, setContas] = useState<ContaCuradoria[] | null>(null)
@@ -167,7 +199,7 @@ function BotaoApagar({ onApagar }: { onApagar: () => void }) {
   return confirmando ? (
     <span className="flex w-full items-center justify-center gap-3 text-sm">
       Apagar a conta e os comentários?
-      <button type="button" onClick={onApagar} className="min-h-11 rounded-full bg-rosa px-4 font-bold text-white">Sim</button>
+      <button type="button" onClick={onApagar} className="min-h-11 rounded-full bg-rosa px-4 font-bold text-on-rosa">Sim</button>
       <button type="button" onClick={() => setConfirmando(false)} className="min-h-11 px-2 underline">Não</button>
     </span>
   ) : (

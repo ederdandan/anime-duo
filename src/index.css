@@ -1,17 +1,30 @@
 @import "tailwindcss";
 
-/* ✦ Cores e fontes do estilo Shoujo (versão Pétalas de Sakura).
-   Mudar um valor aqui muda o site inteiro. */
-@theme {
-  --color-pessego: #FFF4F1;
-  --color-ameixa: #6B3A4E;
-  --color-rosa: #D4567E;
+/* ✦ Cores e fontes. O tema padrão é o Sakura (rosa).
+   Os nomes (rosa, ameixa...) vieram dele, mas cada tema troca os valores:
+   no Menta, por exemplo, "rosa" vira verde. Os temas ficam lá embaixo.
+   "static" faz o Tailwind escrever todas as cores, mesmo as que só o CSS usa. */
+@theme static {
+  --color-pessego: #FFF4F1;      /* fundo da página */
+  --color-ameixa: #6B3A4E;       /* texto */
+  --color-rosa: #D4567E;         /* cor de destaque (botões, títulos) */
   --color-rosa-escuro: #A8456A;
-  --color-rosa-suave: #B0676F;
+  --color-rosa-suave: #B0676F;   /* texto secundário */
   --color-dourado: #E3B04B;
   --color-borda: #F2C6B4;
   --color-borda-forte: #E8B4A0;
   --color-petala: #F7B6C8;
+  --color-cartao: #FFFFFF;       /* fundo dos cartões e botões claros */
+  --color-on-rosa: #FFFFFF;      /* texto em cima da cor de destaque */
+  --color-fundo-topo: #FFDCE7;   /* brilho no alto da página */
+  --color-contorno: #F6D2DA;
+  --color-veu: rgb(74 42 56 / .88); /* fundo atrás da foto aberta */
+  --color-sombra: rgb(214 110 140 / .55);
+  --color-reticula: rgb(170 120 90 / .28); /* pontinhos de mangá */
+  --color-sucesso: #E8F6EC;
+  --color-sucesso-texto: #2F6B43;
+  --color-selo: #FFF1D6;
+  --color-selo-texto: #9A6B12;
 
   --font-titulo: "Kaisei Decol", Georgia, serif;
   --font-corpo: "Zen Maru Gothic", system-ui, sans-serif;
@@ -28,20 +41,20 @@ body {
   font-family: var(--font-corpo);
   background-color: var(--color-pessego);
   background-image:
-    radial-gradient(circle 1.5px at 50% 50%, rgb(170 120 90 / .28) 98%, transparent),
-    radial-gradient(120% 50% at 50% 0%, #FFDCE7 0%, transparent 70%);
+    radial-gradient(circle 1.5px at 50% 50%, var(--color-reticula) 98%, transparent),
+    radial-gradient(120% 50% at 50% 0%, var(--color-fundo-topo) 0%, transparent 70%);
   background-size: 10px 10px, 100% 100%;
   background-attachment: fixed;
 }
 
-/* Moldura com contorno duplo: branco + rosado */
+/* Moldura com contorno duplo: cor do cartão + borda */
 .moldura-dupla {
-  background: #fff;
+  background: var(--color-cartao);
   box-shadow:
-    0 0 0 1px #F6D2DA,
-    0 0 0 5px #fff,
+    0 0 0 1px var(--color-contorno),
+    0 0 0 5px var(--color-cartao),
     0 0 0 6px var(--color-borda),
-    0 14px 30px -14px rgb(214 110 140 / .55);
+    0 14px 30px -14px var(--color-sombra);
 }
 
 /* Brilho branco nas bordas das imagens (cena especial de shoujo) */
@@ -51,13 +64,13 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(70% 70% at 50% 50%, transparent 55%, rgb(255 255 255 / .8) 100%);
+  background: radial-gradient(70% 70% at 50% 50%, transparent 55%, color-mix(in srgb, var(--color-cartao) 80%, transparent) 100%);
 }
 
 /* Brilho dourado ✦ que pisca */
 .brilho-dourado {
   color: var(--color-dourado);
-  text-shadow: 0 0 6px #fff;
+  text-shadow: 0 0 6px var(--color-cartao);
   animation: piscar 2.4s ease-in-out infinite;
 }
 @keyframes piscar {
@@ -89,3 +102,95 @@ body {
   .petala { display: none; }
   .brilho-dourado { animation: none; }
 }
+
+/* ================= TEMAS =================
+   Cada tema só troca as cores. O site guarda a escolha em data-tema, no <html>.
+   Também funciona num pedaço da página: os cartões da tela "Tema" usam isso
+   para mostrar a prévia de cada um. */
+
+/* ---- Shoujo (com pétalas e brilhos) ---- */
+/* Sakura de novo, para a prévia dele aparecer certa quando outro tema está em uso */
+[data-tema="sakura"] {
+  color-scheme: light;
+  --color-pessego: #FFF4F1;
+  --color-ameixa: #6B3A4E;
+  --color-rosa: #D4567E;
+  --color-rosa-escuro: #A8456A;
+  --color-rosa-suave: #B0676F;
+  --color-dourado: #E3B04B;
+  --color-borda: #F2C6B4;
+  --color-borda-forte: #E8B4A0;
+  --color-petala: #F7B6C8;
+  --color-cartao: #FFFFFF;
+  --color-on-rosa: #FFFFFF;
+  --color-fundo-topo: #FFDCE7;
+  --color-contorno: #F6D2DA;
+  --color-veu: rgb(74 42 56 / .88);
+  --color-sombra: rgb(214 110 140 / .55);
+  --color-reticula: rgb(170 120 90 / .28);
+  --color-sucesso: #E8F6EC;
+  --color-sucesso-texto: #2F6B43;
+  --color-selo: #FFF1D6;
+  --color-selo-texto: #9A6B12;
+}
+[data-tema="lavanda"] {
+  --color-pessego: #F6F2FF; --color-ameixa: #3F3460; --color-rosa: #7B5CC4; --color-rosa-escuro: #5E43A3;
+  --color-rosa-suave: #77679A; --color-borda: #D9CCF2; --color-borda-forte: #C6B4E8; --color-petala: #CDB8F5;
+  --color-fundo-topo: #E6DBFF; --color-contorno: #E4DAF7; --color-veu: rgb(45 35 75 / .9);
+  --color-sombra: rgb(120 90 200 / .45); --color-reticula: rgb(110 90 160 / .22);
+}
+[data-tema="menta"] {
+  --color-pessego: #F0FAF5; --color-ameixa: #234A3C; --color-rosa: #2A7F61; --color-rosa-escuro: #1F6650;
+  --color-rosa-suave: #4F7D6C; --color-borda: #BFE3D3; --color-borda-forte: #A5D4BF; --color-petala: #A8E0C8;
+  --color-fundo-topo: #D5F2E5; --color-contorno: #D3EDE1; --color-veu: rgb(20 50 40 / .9);
+  --color-sombra: rgb(60 140 110 / .4); --color-reticula: rgb(60 110 90 / .2);
+}
+[data-tema="ceu"] {
+  --color-pessego: #F1F7FF; --color-ameixa: #23395B; --color-rosa: #2F6FC0; --color-rosa-escuro: #24569A;
+  --color-rosa-suave: #56708F; --color-borda: #C5DAF2; --color-borda-forte: #A9C6EA; --color-petala: #B8D6F7;
+  --color-fundo-topo: #D8E9FF; --color-contorno: #D6E4F5; --color-veu: rgb(20 35 60 / .9);
+  --color-sombra: rgb(60 110 190 / .4); --color-reticula: rgb(70 100 150 / .2);
+}
+[data-tema="por-do-sol"] {
+  --color-pessego: #FFF6EC; --color-ameixa: #5A3420; --color-rosa: #C25521; --color-rosa-escuro: #9C421A;
+  --color-rosa-suave: #93603F; --color-borda: #F5CDAE; --color-borda-forte: #EBB48C; --color-petala: #FFC79E;
+  --color-fundo-topo: #FFE0C2; --color-contorno: #F7DCC6; --color-veu: rgb(70 35 15 / .9);
+  --color-sombra: rgb(210 120 60 / .45); --color-reticula: rgb(170 110 70 / .25);
+}
+[data-tema="noite"] {
+  color-scheme: dark;
+  --color-pessego: #1E1626; --color-ameixa: #F3E3EC; --color-rosa: #F07FA6; --color-rosa-escuro: #F7A8C4;
+  --color-rosa-suave: #C9A3B6; --color-dourado: #F2C66B; --color-borda: #4A3550; --color-borda-forte: #5E4466;
+  --color-petala: #E68FB0; --color-cartao: #2A1F33; --color-on-rosa: #2A0F1C; --color-fundo-topo: #3A2140;
+  --color-contorno: #3A2B44; --color-veu: rgb(10 5 15 / .92); --color-sombra: rgb(0 0 0 / .5);
+  --color-reticula: rgb(255 220 240 / .07); --color-sucesso: #1F3A2A; --color-sucesso-texto: #A8E6BE;
+  --color-selo: #3D3220; --color-selo-texto: #F2C66B;
+}
+
+/* ---- Neutros (sem pétalas, sem pontinhos) ---- */
+[data-tema="claro"] {
+  --color-pessego: #F5F5F4; --color-ameixa: #1C1917; --color-rosa: #3F3F46; --color-rosa-escuro: #18181B;
+  --color-rosa-suave: #66666D; --color-dourado: #A1A1AA; --color-borda: #E4E4E7; --color-borda-forte: #D4D4D8;
+  --color-petala: #D4D4D8; --color-fundo-topo: #F5F5F4; --color-contorno: #E7E5E4;
+  --color-veu: rgb(10 10 12 / .9); --color-sombra: rgb(0 0 0 / .12); --color-reticula: transparent;
+  --color-selo: #F1F1F2; --color-selo-texto: #3F3F46;
+}
+[data-tema="escuro"] {
+  color-scheme: dark;
+  --color-pessego: #141416; --color-ameixa: #ECECEE; --color-rosa: #E4E4E7; --color-rosa-escuro: #FFFFFF;
+  --color-rosa-suave: #A1A1AA; --color-dourado: #A1A1AA; --color-borda: #2E2E33; --color-borda-forte: #3F3F46;
+  --color-petala: #3F3F46; --color-cartao: #1E1E22; --color-on-rosa: #18181B; --color-fundo-topo: #141416;
+  --color-contorno: #26262B; --color-veu: rgb(0 0 0 / .92); --color-sombra: rgb(0 0 0 / .6);
+  --color-reticula: transparent; --color-sucesso: #1C2E22; --color-sucesso-texto: #9FD8B0;
+  --color-selo: #2A2A2F; --color-selo-texto: #D4D4D8;
+}
+[data-tema="papel"] {
+  --color-pessego: #F4EEE3; --color-ameixa: #3B3127; --color-rosa: #6B5440; --color-rosa-escuro: #4A3A2C;
+  --color-rosa-suave: #786653; --color-dourado: #B08D57; --color-borda: #E2D6C2; --color-borda-forte: #D2C2A8;
+  --color-petala: #D2C2A8; --color-cartao: #FBF8F2; --color-fundo-topo: #F4EEE3; --color-contorno: #EAE0CF;
+  --color-veu: rgb(40 30 20 / .9); --color-sombra: rgb(90 70 40 / .18); --color-reticula: transparent;
+  --color-selo: #EFE6D6; --color-selo-texto: #6B5440;
+}
+:is([data-tema="claro"], [data-tema="escuro"], [data-tema="papel"]) .petala { display: none; }
+:is([data-tema="claro"], [data-tema="escuro"], [data-tema="papel"]) .brilho-branco::after { display: none; }
+:is([data-tema="claro"], [data-tema="escuro"], [data-tema="papel"]) .brilho-dourado { animation: none; text-shadow: none; }

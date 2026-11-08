@@ -66,7 +66,7 @@ function MinhaConta() {
           <Link to="/curadoria" className="text-sm font-bold text-rosa underline">Abrir a curadoria</Link>
         </div>
       )}
-      <p className={`rounded-2xl px-4 py-3 ${conta.situacao === 'liberada' ? 'bg-[#E8F6EC] text-[#2F6B43]' : 'bg-pessego'}`}>
+      <p className={`rounded-2xl px-4 py-3 ${conta.situacao === 'liberada' ? 'bg-sucesso text-sucesso-texto' : 'bg-pessego'}`}>
         {avisos[conta.situacao]}
       </p>
       {conta.situacao === 'liberada' && (
@@ -94,7 +94,7 @@ function EntrarOuCadastrar() {
             role="tab"
             aria-selected={modo === m}
             onClick={() => trocar(m)}
-            className={`min-h-11 rounded-full font-bold ${modo === m ? 'bg-white text-rosa shadow' : 'text-rosa-suave'}`}
+            className={`min-h-11 rounded-full font-bold ${modo === m ? 'bg-cartao text-rosa shadow' : 'text-rosa-suave'}`}
           >
             {m === 'entrar' ? 'Já tenho conta' : 'Criar conta'}
           </button>
@@ -181,18 +181,18 @@ function Cadastro() {
     <form onSubmit={enviar} className="flex flex-col gap-4">
       <div className="flex flex-col items-center gap-2">
         <label htmlFor="foto-perfil" className="cursor-pointer">
-          <span className="grid size-28 place-items-center overflow-hidden rounded-full border-2 border-dashed border-borda-forte bg-white text-center text-sm text-rosa-suave">
+          <span className="grid size-28 place-items-center overflow-hidden rounded-full border-2 border-dashed border-borda-forte bg-cartao text-center text-sm text-rosa-suave">
             {previa ? <img src={previa} alt="Sua foto de perfil" className="size-full object-cover" /> : <>✿<br />Escolher<br />foto</>}
           </span>
         </label>
         <input id="foto-perfil" type="file" accept="image/*" className="sr-only" onChange={(e) => escolheuFoto(e.target.files?.[0])} />
         <div className="flex gap-2 text-sm">
           {/* capture="user" abre a câmera da frente (selfie) no celular */}
-          <label className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-white px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
+          <label className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-cartao px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
             <span aria-hidden="true">📷</span> Tirar selfie
             <input type="file" accept="image/*" capture="user" className="sr-only" onChange={(e) => escolheuFoto(e.target.files?.[0])} />
           </label>
-          <label htmlFor="foto-perfil" className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-white px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
+          <label htmlFor="foto-perfil" className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-cartao px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
             <span aria-hidden="true">🖼️</span> Galeria
           </label>
         </div>

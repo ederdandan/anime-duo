@@ -95,7 +95,7 @@ public static class RotasContas
         });
 
         api.MapPost("/curadoria/contas/{id}/situacao", async (HttpContext ctx, string id, NovaSituacao nova,
-            Permissoes permissoes, Contas contas, Comentarios comentarios) =>
+            Permissoes permissoes, Contas contas, Comentarios comentarios, Historico historico) =>
         {
             var quem = await permissoes.De(ctx);
             if (!quem.Curadora) return quem.Negado(SoCuradoria);
@@ -118,12 +118,14 @@ public static class RotasContas
             // Recusada: os comentários dela (e as respostas a eles) saem do mural.
             if (conta.Situacao == Situacoes.Recusada)
                 await comentarios.Alterar(lista => Comentarios.ApagarComRespostas(lista, c => c.ContaId == id));
+            var verbo = conta.Situacao switch { Situacoes.Liberada => "liberou", Situacoes.Recusada => "recusou", _ => "voltou para a espera" };
+            await historico.Anotar(quem, $"{verbo} a conta de {conta.Nome} ({conta.Email})");
             return Results.Ok(ContaCuradoria.De(conta));
         });
 
         // Pôr ou tirar uma conta (liberada) da curadoria.
         api.MapPost("/curadoria/contas/{id}/curadoria", async (HttpContext ctx, string id, NovoCargo novo,
-            Permissoes permissoes, Contas contas) =>
+            Permissoes permissoes, Contas contas, Historico historico) =>
         {
             var quem = await permissoes.De(ctx);
             if (!quem.Curadora) return quem.Negado(SoCuradoria);
@@ -141,12 +143,13 @@ public static class RotasContas
             {
                 (404, _) => Erro("Conta não encontrada.", 404),
                 (400, _) => Erro("Libere a conta antes de colocar na curadoria."),
-                (_, var c) => Results.Ok(ContaCuradoria.De(c!)),
+                (_, var c) => await Anotado(historico, quem,
+                    novo.Curadoria ? $"pôs {c!.Nome} na curadoria" : $"tirou {c!.Nome} da curadoria", ContaCuradoria.De(c!)),
             };
         });
 
         api.MapDelete("/curadoria/contas/{id}", async (HttpContext ctx, string id,
-            Permissoes permissoes, Contas contas, Comentarios comentarios, Repositorio repo) =>
+            Permissoes permissoes, Contas contas, Comentarios comentarios, Repositorio repo, Historico historico) =>
         {
             var quem = await permissoes.De(ctx);
             if (!quem.Curadora) return quem.Negado(SoCuradoria);
@@ -160,6 +163,7 @@ public static class RotasContas
             if (conta is null) return Erro("Conta não encontrada.", 404);
             await comentarios.Alterar(lista => Comentarios.ApagarComRespostas(lista, c => c.ContaId == id));
             repo.ApagarMidia(conta.Foto);
+            await historico.Anotar(quem, $"apagou a conta de {conta.Nome} ({conta.Email})");
             return Results.NoContent();
         });
     }
@@ -174,6 +178,12 @@ public static class RotasContas
 
     static bool EmailValido(string email) =>
         email.Length > 3 && MailAddress.TryCreate(email, out var m) && m.Address == email && email.Contains('.');
+
+    static async Task<IResult> Anotado(Historico historico, Quem quem, string acao, object resposta)
+    {
+        await historico.Anotar(quem, acao);
+        return Results.Ok(resposta);
+    }
 
     public static IResult Erro(string mensagem, int status = 400) => Results.Problem(mensagem, statusCode: status);
 }

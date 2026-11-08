@@ -23,6 +23,8 @@ builder.Services.AddSingleton(new Curadoria(builder.Configuration["Mural:Senha"]
 builder.Services.AddSingleton(new Contas(pastaDados));
 builder.Services.AddSingleton(new Comentarios(pastaDados));
 builder.Services.AddSingleton<Permissoes>();
+builder.Services.AddSingleton(new Historico(pastaDados));
+builder.Services.AddSingleton(new Lixeira(pastaDados));
 
 // Login das contas com cookie. As "chaves" do cookie ficam em dados/chaves,
 // assim ninguém é deslogado quando o MonsterASP reinicia o site.
@@ -70,6 +72,7 @@ api.MapPost("/entrar", async (Entrada entrada, Curadoria curadoria) =>
 });
 
 api.MapAlbuns();
+api.MapCuradoria();
 
 // Qualquer outro endereço abre o site.
 app.MapFallbackToFile("index.html");

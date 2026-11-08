@@ -58,7 +58,7 @@ export default function NovaCena() {
                   : 'Sua conta não foi liberada para postar.'}
             </p>
             {!conta && (
-              <Link to="/conta" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rosa font-bold text-white">
+              <Link to="/conta" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rosa font-bold text-on-rosa">
                 Entrar ou criar conta
               </Link>
             )}
@@ -97,11 +97,13 @@ function Formulario({ onSair }: { onSair: () => void }) {
     setErro('')
     setEstado('enviando')
     try {
-      let destino = albumId
-      if (albumId === NOVO) destino = (await criarAlbum(tituloNovo, descricaoNova)).id
       // O filtro é aplicado na foto em tamanho real só agora, na hora de enviar.
       const pronta = await finalizarFoto(aplicarFiltro(foto.original, foto.filtro.receita))
-      await criarCena(destino, { foto: pronta.foto, nomeArquivo: pronta.nomeArquivo, anime, comentario, cores })
+      const cena = { foto: pronta.foto, nomeArquivo: pronta.nomeArquivo, anime, comentario, cores }
+      // Álbum novo vai junto com a cena, num pedido só: se a foto falhar, o álbum não é criado.
+      const destino = albumId === NOVO
+        ? (await criarAlbum(tituloNovo, descricaoNova, cena)).id
+        : (await criarCena(albumId, cena), albumId)
       await recarregar()
       navigate(`/album/${destino}`)
     } catch (err) {
@@ -172,8 +174,8 @@ function Formulario({ onSair }: { onSair: () => void }) {
 
       {erro && <p className="text-sm font-bold text-rosa" role="alert">{erro}</p>}
 
-      <button type="submit" disabled={estado !== 'parado'} className="min-h-12 rounded-full bg-rosa text-lg font-bold text-white disabled:opacity-60">
-        {estado === 'enviando' ? 'Publicando… ✦' : 'Criar cena ✦'}
+      <button type="submit" disabled={estado !== 'parado' || !foto} className="min-h-12 rounded-full bg-rosa text-lg font-bold text-on-rosa disabled:opacity-60">
+        {estado === 'enviando' ? 'Publicando… ✦' : foto ? 'Criar cena ✦' : 'Escolha uma foto para criar a cena'}
       </button>
 
       {porSenha && (

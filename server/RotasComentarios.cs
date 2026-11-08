@@ -90,15 +90,17 @@ public static class RotasComentarios
         // Quem pode apagar: quem escreveu, o dono do álbum (para tirar comentários indesejados) e a curadora.
         // As respostas embaixo saem junto.
         api.MapDelete("/comentarios/{id}", async (HttpContext ctx, string id, Comentarios comentarios,
-            Permissoes permissoes, Repositorio repo) =>
+            Permissoes permissoes, Repositorio repo, Historico historico, Contas contas) =>
         {
             var quem = await permissoes.De(ctx);
             if (quem.SenhaErrada) return quem.Negado("Senha incorreta.");
             var albuns = await repo.Ler();
+            Comentario? apagado = null;
             var resultado = await comentarios.Alterar(lista =>
             {
                 var c = lista.FirstOrDefault(c => c.Id == id);
                 if (c is null) return 404;
+                apagado = c;
                 var album = albuns.FirstOrDefault(a => a.Id == c.AlbumId);
                 var pode = quem.Curadora
                     || (quem.ContaId is { } eu && c.ContaId == eu)
@@ -111,8 +113,20 @@ public static class RotasComentarios
             {
                 404 => RotasContas.Erro("Comentário não encontrado.", 404),
                 403 => RotasContas.Erro("Só quem escreveu, o dono do álbum ou a curadora pode apagar esse comentário.", 403),
-                _ => Results.NoContent(),
+                _ => await AnotarModeracao(),
             };
+
+            // Só vai para o histórico quando alguém apaga o comentário de OUTRA pessoa.
+            async Task<IResult> AnotarModeracao()
+            {
+                if (apagado!.ContaId != quem.ContaId)
+                {
+                    var autor = (await contas.Ler()).FirstOrDefault(c => c.Id == apagado.ContaId)?.Nome ?? "conta apagada";
+                    var trecho = apagado.Texto.Length > 40 ? apagado.Texto[..40] + "…" : apagado.Texto;
+                    await historico.Anotar(quem, $"apagou o comentário de {autor}: \"{trecho}\"");
+                }
+                return Results.NoContent();
+            }
         });
     }
 }

@@ -12,6 +12,18 @@
     <meta property="og:description" content="Um mural de cenas de anime escolhidas a dedo." />
     <meta property="og:type" content="website" />
 
+    <!-- Aplica o tema guardado ANTES de desenhar a página, para não piscar rosa -->
+    <script>
+      try {
+        var t = localStorage.getItem('mural-tema')
+        if (t && /^[a-z-]{1,20}$/.test(t)) {
+          document.documentElement.dataset.tema = t
+          var cores = { lavanda: '#F6F2FF', menta: '#F0FAF5', ceu: '#F1F7FF', 'por-do-sol': '#FFF6EC', noite: '#1E1626', claro: '#F5F5F4', escuro: '#141416', papel: '#F4EEE3' }
+          if (cores[t]) document.querySelector('meta[name="theme-color"]').content = cores[t]
+        }
+      } catch (e) {}
+    </script>
+
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

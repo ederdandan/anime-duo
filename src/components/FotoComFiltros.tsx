@@ -49,16 +49,16 @@ export default function FotoComFiltros({ valor, onMudar, onErro }: Props) {
   // Se a tela "zerar" a foto, some a prévia também
   useEffect(() => { if (!valor) { setBase(null); setPrevia('') } }, [valor])
 
-  const botao = 'flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]'
+  const botao = 'flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-cartao px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]'
 
   return (
     <div className="flex flex-col gap-3">
       {previa ? (
-        <div className="brilho-branco overflow-hidden rounded-2xl bg-white">
+        <div className="brilho-branco overflow-hidden rounded-2xl bg-cartao">
           <img src={previa} alt={`Prévia da foto com o filtro ${valor?.filtro.nome}`} className="block max-h-80 w-full object-contain" />
         </div>
       ) : (
-        <div className="flex min-h-36 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-borda-forte bg-white p-4 text-center text-rosa-suave">
+        <div className="flex min-h-36 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-borda-forte bg-cartao p-4 text-center text-rosa-suave">
           <span className="text-3xl text-petala" aria-hidden="true">✿</span>
           {preparando ? 'Preparando a foto…' : 'Tire uma foto ou escolha uma da galeria'}
         </div>
@@ -94,7 +94,7 @@ export default function FotoComFiltros({ valor, onMudar, onErro }: Props) {
                     <img
                       src={base.miniaturas[f.id]}
                       alt=""
-                      className={`size-[68px] rounded-2xl object-cover ${ativo ? 'shadow-[0_0_0_2px_#fff,0_0_0_4px_var(--color-rosa)]' : 'opacity-90'}`}
+                      className={`size-[68px] rounded-2xl object-cover ${ativo ? 'shadow-[0_0_0_2px_var(--color-cartao),0_0_0_4px_var(--color-rosa)]' : 'opacity-90'}`}
                     />
                     <span className={`text-xs ${ativo ? 'font-bold text-rosa' : 'text-rosa-suave'}`}>{f.nome}</span>
                   </button>

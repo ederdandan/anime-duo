@@ -1,6 +1,6 @@
 import albunsLocais from '../data/albuns.json'
 import { caminho } from './caminho'
-import type { Album, Comentario, Conta, ContaCuradoria, Item, Situacao } from '../types'
+import type { Album, Comentario, Conta, ContaCuradoria, Evento, Item, NaLixeira, Situacao } from '../types'
 
 // Conversa com o servidor (pasta server/). Se não houver servidor,
 // como no GitHub Pages, o site mostra os álbuns do arquivo albuns.json.
@@ -49,12 +49,23 @@ function cabecalhoSenha(): Record<string, string> {
   return { 'X-Mural-Senha': senhaSalva() ?? '' }
 }
 
-export async function criarAlbum(titulo: string, descricao: string): Promise<Album> {
-  const r = await fetch(caminho('api/albuns'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...cabecalhoSenha() },
-    body: JSON.stringify({ titulo, descricao }),
-  })
+type CenaNova = { foto: Blob; nomeArquivo: string; anime: string; comentario: string; cores: string[] }
+
+function formDaCena(dados: CenaNova): FormData {
+  const form = new FormData()
+  form.append('foto', dados.foto, dados.nomeArquivo)
+  form.append('anime', dados.anime)
+  form.append('comentario', dados.comentario)
+  form.append('cores', dados.cores.join(','))
+  return form
+}
+
+// Álbum novo já nasce com a primeira cena (com foto). Não existe álbum vazio.
+export async function criarAlbum(titulo: string, descricao: string, primeira: CenaNova): Promise<Album> {
+  const form = formDaCena(primeira)
+  form.append('titulo', titulo)
+  form.append('descricao', descricao)
+  const r = await fetch(caminho('api/albuns'), { method: 'POST', headers: cabecalhoSenha(), body: form })
   if (!r.ok) throw await erroDe(r)
   return r.json()
 }
@@ -77,19 +88,11 @@ export async function editarCena(albumId: string, cenaId: string, anime: string,
   if (!r.ok) throw await erroDe(r)
 }
 
-export async function criarCena(
-  albumId: string,
-  dados: { foto: Blob; nomeArquivo: string; anime: string; comentario: string; cores: string[] },
-): Promise<Item> {
-  const form = new FormData()
-  form.append('foto', dados.foto, dados.nomeArquivo)
-  form.append('anime', dados.anime)
-  form.append('comentario', dados.comentario)
-  form.append('cores', dados.cores.join(','))
+export async function criarCena(albumId: string, dados: CenaNova): Promise<Item> {
   const r = await fetch(caminho(`api/albuns/${encodeURIComponent(albumId)}/cenas`), {
     method: 'POST',
     headers: cabecalhoSenha(),
-    body: form,
+    body: formDaCena(dados),
   })
   if (!r.ok) throw await erroDe(r)
   return r.json()
@@ -168,6 +171,30 @@ export async function mudarCuradoria(id: string, curadoria: boolean): Promise<vo
 export async function apagarConta(id: string): Promise<void> {
   const r = await fetch(caminho(`api/curadoria/contas/${encodeURIComponent(id)}`), { method: 'DELETE', headers: cabecalhoSenha() })
   if (!r.ok) throw await erroDe(r)
+}
+
+// ---------- Lixeira e histórico (só a curadoria) ----------
+
+export async function listarLixeira(): Promise<NaLixeira[]> {
+  const r = await fetch(caminho('api/curadoria/lixeira'), { headers: cabecalhoSenha(), cache: 'no-store' })
+  if (!r.ok) throw await erroDe(r)
+  return r.json()
+}
+
+export async function restaurarDaLixeira(id: string): Promise<void> {
+  const r = await fetch(caminho(`api/curadoria/lixeira/${encodeURIComponent(id)}/restaurar`), { method: 'POST', headers: cabecalhoSenha() })
+  if (!r.ok) throw await erroDe(r)
+}
+
+export async function apagarDeVez(id: string): Promise<void> {
+  const r = await fetch(caminho(`api/curadoria/lixeira/${encodeURIComponent(id)}`), { method: 'DELETE', headers: cabecalhoSenha() })
+  if (!r.ok) throw await erroDe(r)
+}
+
+export async function listarHistorico(): Promise<Evento[]> {
+  const r = await fetch(caminho('api/curadoria/historico'), { headers: cabecalhoSenha(), cache: 'no-store' })
+  if (!r.ok) throw await erroDe(r)
+  return r.json()
 }
 
 // ---------- Comentários ----------

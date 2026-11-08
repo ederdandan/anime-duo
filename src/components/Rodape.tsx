@@ -4,7 +4,7 @@ import { useConta } from '../lib/conta'
 import { usePermissoes } from '../lib/permissoes'
 import Avatar from './Avatar'
 
-const pilula = 'inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-5 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]'
+const pilula = 'inline-flex min-h-11 items-center gap-2 rounded-full bg-cartao px-5 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]'
 
 export default function Rodape() {
   const { temServidor } = useAlbuns()
@@ -13,8 +13,9 @@ export default function Rodape() {
 
   return (
     <footer className="mt-auto flex flex-col items-center gap-3 pt-12 text-center text-sm text-rosa-suave">
-      {temServidor && (
-        <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex flex-wrap justify-center gap-2">
+        {temServidor && (
+          <>
           <Link to="/nova" className={pilula}>
             <span className="text-dourado">✦</span> Nova cena
           </Link>
@@ -26,8 +27,10 @@ export default function Rodape() {
             <Link to="/conta" className={pilula}>Entrar para comentar</Link>
           )}
           {curadora && <Link to="/curadoria" className={pilula}>Curadoria</Link>}
-        </div>
-      )}
+          </>
+        )}
+        <Link to="/tema" className={pilula}><span aria-hidden="true">🎨</span> Tema</Link>
+      </div>
       <div>
         <p aria-hidden="true" className="mb-1 tracking-[0.6em] text-petala">✿ ✦ ❀ ✦ ✿</p>
         <p>Curadoria da filha · código do pai</p>

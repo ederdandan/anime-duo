@@ -38,7 +38,7 @@ export default function Galeria() {
     >
       <Link
         to="/"
-        className="inline-flex min-h-11 items-center gap-1 rounded-full bg-white px-4 text-sm text-rosa-suave shadow-[0_0_0_1px_var(--color-borda-forte)]"
+        className="inline-flex min-h-11 items-center gap-1 rounded-full bg-cartao px-4 text-sm text-rosa-suave shadow-[0_0_0_1px_var(--color-borda-forte)]"
       >
         ← Álbuns
       </Link>
@@ -50,7 +50,7 @@ export default function Galeria() {
           <p className="text-4xl text-petala" aria-hidden="true">✿</p>
           <p className="mt-2">Esse álbum ainda está vazio.</p>
           {podeMexer(album) && (
-            <Link to={`/nova?album=${album.id}`} className="mt-4 inline-flex min-h-11 items-center rounded-full bg-rosa px-5 font-bold text-white">
+            <Link to={`/nova?album=${album.id}`} className="mt-4 inline-flex min-h-11 items-center rounded-full bg-rosa px-5 font-bold text-on-rosa">
               Adicionar a primeira cena
             </Link>
           )}
@@ -162,10 +162,10 @@ function Cabecalho({ album }: { album: Album }) {
       )}
       {podeEditar && (
         <div className="mt-3 flex flex-wrap justify-center gap-2">
-          <button type="button" onClick={abrir} className="inline-flex min-h-10 items-center gap-1 rounded-full bg-white px-4 text-sm font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
+          <button type="button" onClick={abrir} className="inline-flex min-h-10 items-center gap-1 rounded-full bg-cartao px-4 text-sm font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
             ✎ Editar álbum
           </button>
-          <Link to={`/nova?album=${album.id}`} className="inline-flex min-h-10 items-center gap-1 rounded-full bg-white px-4 text-sm font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
+          <Link to={`/nova?album=${album.id}`} className="inline-flex min-h-10 items-center gap-1 rounded-full bg-cartao px-4 text-sm font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
             ✦ Adicionar cena
           </Link>
         </div>

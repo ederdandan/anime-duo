@@ -111,7 +111,7 @@ export default function Comentarios({ album, cenaId }: { album: Album; cenaId: s
   }
 
   return (
-    <section className="rounded-[28px] bg-white px-4 py-5 text-left shadow-[0_0_0_2px_#fff,0_0_0_3px_var(--color-borda)] sm:px-5">
+    <section className="rounded-[28px] bg-cartao px-4 py-5 text-left shadow-[0_0_0_2px_var(--color-cartao),0_0_0_3px_var(--color-borda)] sm:px-5">
       <h2 className="mb-4 font-titulo text-lg text-rosa">
         Comentários {lista && lista.length > 0 && <span className="text-sm text-rosa-suave">({lista.length})</span>}
       </h2>

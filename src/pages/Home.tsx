@@ -8,7 +8,8 @@ import Carregando from '../components/Carregando'
 export default function Home() {
   const { albuns } = useAlbuns()
   if (!albuns) return <Carregando />
-  const lista = albuns
+  // Álbum sem nenhuma cena não aparece (por exemplo, quando todas foram para a lixeira).
+  const lista = albuns.filter((a) => a.itens.length > 0)
 
   return (
     <motion.main

@@ -25,7 +25,7 @@ export default function Paleta({ cores }: { cores: string[] }) {
             aria-label={`Copiar a cor ${cor}`}
           >
             <span
-              className="block size-8 rounded-full shadow-[0_0_0_2px_#fff,0_0_0_3px_var(--color-borda)]"
+              className="block size-8 rounded-full shadow-[0_0_0_2px_var(--color-cartao),0_0_0_3px_var(--color-borda)]"
               style={{ background: cor }}
             />
             <code className="font-mono text-[11px] text-rosa-suave">

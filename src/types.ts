@@ -34,6 +34,24 @@ export interface ContaCuradoria extends Conta {
   criadaEm: string
 }
 
+// Cena na lixeira da curadoria (some de vez em `someEm`)
+export interface NaLixeira {
+  id: string
+  albumId: string
+  albumTitulo: string
+  item: Item
+  apagadaEm: string
+  apagadaPor: string
+  someEm: string
+}
+
+// Uma linha do histórico: "Ana apagou a cena X"
+export interface Evento {
+  quando: string
+  quem: string
+  acao: string
+}
+
 export interface Comentario {
   id: string
   respostaDe: string | null   // id do comentário "pai"; null = comentário direto na cena

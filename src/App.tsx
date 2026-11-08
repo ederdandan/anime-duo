@@ -7,6 +7,7 @@ import Galeria from './pages/Galeria'
 import NovaCena from './pages/NovaCena'
 import ContaPagina from './pages/Conta'
 import Curadoria from './pages/Curadoria'
+import TemaPagina from './pages/Tema'
 
 export default function App() {
   const location = useLocation()
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/nova" element={<NovaCena />} />
             <Route path="/conta" element={<ContaPagina />} />
             <Route path="/curadoria" element={<Curadoria />} />
+            <Route path="/tema" element={<TemaPagina />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </AnimatePresence>

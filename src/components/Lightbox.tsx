@@ -69,7 +69,7 @@ export default function Lightbox({ album, indice, onTrocar, onFechar }: Props) {
       role="dialog"
       aria-modal="true"
       aria-label={item.comentario}
-      className="fixed inset-0 z-50 overflow-y-auto bg-[rgb(74_42_56/.88)] backdrop-blur-sm"
+      className="fixed inset-0 z-50 overflow-y-auto bg-veu backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -80,7 +80,7 @@ export default function Lightbox({ album, indice, onTrocar, onFechar }: Props) {
           type="button"
           onClick={onFechar}
           aria-label="Fechar"
-          className="fixed top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] z-10 grid size-11 place-items-center rounded-full bg-white text-xl text-rosa shadow-lg"
+          className="fixed top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] z-10 grid size-11 place-items-center rounded-full bg-cartao text-xl text-rosa shadow-lg"
         >
           ✕
         </button>
@@ -122,7 +122,7 @@ export default function Lightbox({ album, indice, onTrocar, onFechar }: Props) {
               onFechar={async (salvou) => { setEditando(null); if (salvou) await recarregar() }}
             />
           ) : (
-            <div className="rounded-[28px] bg-white px-5 py-4 text-center shadow-[0_0_0_2px_#fff,0_0_0_3px_var(--color-borda)]">
+            <div className="rounded-[28px] bg-cartao px-5 py-4 text-center shadow-[0_0_0_2px_var(--color-cartao),0_0_0_3px_var(--color-borda)]">
               <p className="leading-relaxed">
                 <span className="text-petala">～ </span>{item.comentario}<span className="text-petala"> ～</span>
               </p>
@@ -145,8 +145,8 @@ export default function Lightbox({ album, indice, onTrocar, onFechar }: Props) {
             <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
               {confirmando === item.id ? (
                 <>
-                  <span className="text-white">Apagar essa cena de vez?</span>
-                  <button type="button" onClick={apagar} className="min-h-11 rounded-full bg-white px-4 font-bold text-rosa">Sim, apagar</button>
+                  <span className="text-white">Mandar essa cena para a lixeira?</span>
+                  <button type="button" onClick={apagar} className="min-h-11 rounded-full bg-cartao px-4 font-bold text-rosa">Sim, mandar</button>
                   <button type="button" onClick={() => setConfirmando(null)} className="min-h-11 rounded-full px-4 text-white underline">Cancelar</button>
                 </>
               ) : (
@@ -184,7 +184,7 @@ function EditarTexto({ albumId, item, onFechar }: { albumId: string; item: Item;
   }
 
   return (
-    <form onSubmit={salvar} className="flex flex-col gap-3 rounded-[28px] bg-white px-5 py-4 text-left shadow-[0_0_0_2px_#fff,0_0_0_3px_var(--color-borda)]">
+    <form onSubmit={salvar} className="flex flex-col gap-3 rounded-[28px] bg-cartao px-5 py-4 text-left shadow-[0_0_0_2px_var(--color-cartao),0_0_0_3px_var(--color-borda)]">
       <div>
         <label htmlFor="editar-anime" className="mb-1 block text-sm font-bold text-rosa-escuro">De qual anime é?</label>
         <input id="editar-anime" value={anime} onChange={(e) => setAnime(e.target.value)} maxLength={80} className={campo} />

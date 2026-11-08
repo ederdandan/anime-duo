@@ -36,6 +36,8 @@ Quem pode postar: a **curadoria** e qualquer **conta liberada** por ela.
 2. Entre com a sua conta (ou toque em **Usar a senha da curadoria** e digite a senha; só precisa uma vez em cada celular).
 3. Escolha o álbum (ou crie um novo), a foto, escreva o comentário e toque em **Criar cena ✦**.
 
+Toda cena precisa de foto: sem ela o botão fica apagado, e o servidor também recusa. Um álbum novo só é criado junto com a primeira cena, então não nasce álbum vazio. Se um álbum ficar sem cenas (por exemplo, quando todas vão para a lixeira), ele some da página inicial, mas continua na lista da **Nova cena** para a dona colocar fotos de novo.
+
 Quem cria um álbum com a conta vira a **dona** dele: o nome e a foto dela aparecem no topo do álbum. Só a dona do álbum e a curadora podem colocar cenas nele, editar e apagar. Os álbuns criados só com a senha da curadora (e os de exemplo) não têm dona: só a curadora mexe neles.
 
 | Quem | Criar álbum | Mexer no álbum e nas cenas | Editar comentário | Apagar comentário |
@@ -63,6 +65,23 @@ A curadoria libera contas, edita e apaga qualquer coisa no mural. Dá para fazer
 Ninguém consegue tirar, recusar ou apagar a própria conta pela curadoria; outra pessoa da curadoria precisa fazer isso. Recusar uma conta tira ela da curadoria também.
 
 **Primeira vez:** cada pessoa cria a sua conta; depois, alguém abre a Curadoria com a senha, libera as contas e toca em **Pôr na curadoria ✦** em quem deve cuidar do mural.
+
+A tela Curadoria tem três abas:
+
+- **Contas:** liberar, recusar, pôr ou tirar da curadoria.
+- **Lixeira:** cena apagada não some na hora. Ela fica 30 dias na lixeira, com o nome de quem apagou. Dá para tocar em **Restaurar ↺** (ela volta para o álbum, com os comentários) ou em **Apagar de vez**. Depois de 30 dias ela some sozinha.
+- **Histórico:** quem fez o quê, e quando (criar e editar álbum, postar, apagar e restaurar cena, apagar comentário de outra pessoa, mudanças nas contas). Guarda as 500 coisas mais recentes. Se aparecer "senha da curadoria", foi alguém usando a senha reserva; nesse caso, vale trocar o Secret `MURAL_SENHA`.
+
+No servidor, ficam em `dados/lixeira.json` e `dados/historico.json`.
+
+## Temas
+
+No rodapé, **🎨 Tema** abre a escolha de cores. Cada aparelho guarda a sua escolha.
+
+- **Shoujo** (com pétalas e brilhos): Sakura (o rosa original), Lavanda, Menta, Céu, Pôr do sol e Noite (escuro).
+- **Neutros** (sem pétalas e sem enfeites): Claro, Escuro e Papel.
+
+As cores ficam em `src/index.css`. Lá em cima estão as do Sakura; cada tema embaixo troca só os valores (`[data-tema="menta"]` e por aí vai). Para criar um tema novo: copie um bloco, mude o nome e as cores, e adicione o nome em `src/lib/tema.ts`. Dá para pedir à IA, por exemplo: *"cria um tema Outono com laranja e marrom, no mesmo jeito dos outros"*.
 
 ## Comentários
 

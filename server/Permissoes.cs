@@ -28,6 +28,9 @@ public record Quem(bool Curadora, bool SenhaErrada, Conta? Conta)
     public bool PodeMexer(Album album) => Curadora || DonoDe(album);
     public bool PodePostar => Curadora || Liberada;
 
+    // Como a pessoa aparece no histórico
+    public string Nome => Liberada ? Conta!.Nome : Curadora ? "senha da curadoria" : "alguém";
+
     // A resposta certa quando a pessoa não pode fazer algo.
     public IResult Negado(string mensagem)
     {
