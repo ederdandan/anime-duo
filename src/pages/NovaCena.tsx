@@ -1,18 +1,25 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useAlbuns } from '../lib/albuns'
-import { criarAlbum, criarCena, salvarSenha, senhaSalva } from '../lib/api'
+import { criarAlbum, criarCena, salvarSenha } from '../lib/api'
+import { useConta } from '../lib/conta'
+import { usePermissoes } from '../lib/permissoes'
 import { campo, rotulo, voltar } from '../lib/estilos'
 import EntrarCuradora from '../components/EntrarCuradora'
-import { prepararFoto } from '../lib/imagem'
+import { finalizarFoto } from '../lib/imagem'
+import { aplicarFiltro } from '../lib/filtros'
+import FotoComFiltros, { type FotoEscolhida } from '../components/FotoComFiltros'
 import Carregando from '../components/Carregando'
 
 const NOVO = '__novo__'
 
 export default function NovaCena() {
   const { albuns, temServidor } = useAlbuns()
-  const [logada, setLogada] = useState(!!senhaSalva())
+  const { conta } = useConta()
+  const { podePostar } = usePermissoes()
+  const [, atualizar] = useState(0)  // para a tela redesenhar depois da senha da curadora
+  const [mostrarCuradora, setMostrarCuradora] = useState(false)
 
   return (
     <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
@@ -36,10 +43,29 @@ export default function NovaCena() {
           <p className="moldura-dupla rounded-3xl p-6 text-center">
             Aqui só dá para ver o mural. Para criar cenas, use o endereço do site no MonsterASP.
           </p>
-        ) : !logada ? (
-          <EntrarCuradora onEntrou={() => setLogada(true)} />
+        ) : podePostar ? (
+          <Formulario onSair={() => { salvarSenha(null); atualizar((n) => n + 1) }} />
+        ) : mostrarCuradora ? (
+          <EntrarCuradora onEntrou={() => atualizar((n) => n + 1)} />
         ) : (
-          <Formulario onSair={() => { salvarSenha(null); setLogada(false) }} />
+          // Ninguém com permissão para postar: explica o caminho
+          <div className="moldura-dupla flex flex-col items-center gap-4 rounded-3xl p-6 text-center">
+            <p>
+              {!conta
+                ? 'Para postar cenas, entre com a sua conta.'
+                : conta.situacao === 'aguardando'
+                  ? 'Sua conta está esperando a curadora liberar. Depois disso você já pode postar!'
+                  : 'Sua conta não foi liberada para postar.'}
+            </p>
+            {!conta && (
+              <Link to="/conta" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-rosa font-bold text-white">
+                Entrar ou criar conta
+              </Link>
+            )}
+            <button type="button" onClick={() => setMostrarCuradora(true)} className="text-sm text-rosa-suave underline">
+              Sou a curadora
+            </button>
+          </div>
         )}
       </div>
     </motion.main>
@@ -48,48 +74,34 @@ export default function NovaCena() {
 
 function Formulario({ onSair }: { onSair: () => void }) {
   const { albuns, recarregar } = useAlbuns()
+  const { podeMexer, curadora } = usePermissoes()
   const navigate = useNavigate()
   const [params] = useSearchParams()
 
-  const [albumId, setAlbumId] = useState(params.get('album') ?? albuns?.[0]?.id ?? NOVO)
+  // Só aparecem os álbuns em que dá para postar: os seus (ou todos, para a curadora).
+  const meus = (albuns ?? []).filter(podeMexer)
+  const pedido = params.get('album')
+  const [albumId, setAlbumId] = useState(pedido && meus.some((a) => a.id === pedido) ? pedido : meus[0]?.id ?? NOVO)
   const [tituloNovo, setTituloNovo] = useState('')
   const [descricaoNova, setDescricaoNova] = useState('')
-  const [preparada, setPreparada] = useState<{ foto: Blob; nomeArquivo: string } | null>(null)
-  const [previa, setPrevia] = useState('')
+  const [foto, setFoto] = useState<FotoEscolhida | null>(null)
   const [cores, setCores] = useState<string[]>([])
   const [anime, setAnime] = useState('')
   const [comentario, setComentario] = useState('')
-  const [estado, setEstado] = useState<'parado' | 'preparando' | 'enviando'>('parado')
+  const [estado, setEstado] = useState<'parado' | 'enviando'>('parado')
   const [erro, setErro] = useState('')
-
-  // Libera a memória da prévia quando trocar de foto ou sair da tela
-  useEffect(() => () => { if (previa) URL.revokeObjectURL(previa) }, [previa])
-
-  async function escolheuFoto(arquivo: File | undefined) {
-    if (!arquivo) return
-    setErro('')
-    setEstado('preparando')
-    try {
-      const r = await prepararFoto(arquivo)
-      setPreparada({ foto: r.foto, nomeArquivo: r.nomeArquivo })
-      setCores(r.cores)
-      setPrevia(URL.createObjectURL(r.foto))
-    } catch {
-      setErro('Não consegui abrir essa foto. Tente outra em JPG, PNG ou WebP.')
-    } finally {
-      setEstado('parado')
-    }
-  }
 
   async function criar(e: FormEvent) {
     e.preventDefault()
-    if (!preparada) { setErro('Escolha uma foto primeiro.'); return }
+    if (!foto) { setErro('Escolha uma foto primeiro.'); return }
     setErro('')
     setEstado('enviando')
     try {
       let destino = albumId
       if (albumId === NOVO) destino = (await criarAlbum(tituloNovo, descricaoNova)).id
-      await criarCena(destino, { ...preparada, anime, comentario, cores })
+      // O filtro é aplicado na foto em tamanho real só agora, na hora de enviar.
+      const pronta = await finalizarFoto(aplicarFiltro(foto.original, foto.filtro.receita))
+      await criarCena(destino, { foto: pronta.foto, nomeArquivo: pronta.nomeArquivo, anime, comentario, cores })
       await recarregar()
       navigate(`/album/${destino}`)
     } catch (err) {
@@ -104,7 +116,7 @@ function Formulario({ onSair }: { onSair: () => void }) {
       <div>
         <label htmlFor="album" className={rotulo}>Álbum</label>
         <select id="album" value={albumId} onChange={(e) => setAlbumId(e.target.value)} className={campo}>
-          {albuns?.map((a) => <option key={a.id} value={a.id}>{a.titulo}</option>)}
+          {meus.map((a) => <option key={a.id} value={a.id}>{a.titulo}</option>)}
           <option value={NOVO}>✦ Criar álbum novo…</option>
         </select>
       </div>
@@ -124,21 +136,7 @@ function Formulario({ onSair }: { onSair: () => void }) {
 
       <div>
         <span className={rotulo}>Foto</span>
-        <label
-          htmlFor="foto"
-          className="block cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-borda-forte bg-white text-center"
-        >
-          {previa ? (
-            <div className="brilho-branco"><img src={previa} alt="Prévia da foto escolhida" className="block max-h-80 w-full object-contain" /></div>
-          ) : (
-            <span className="flex min-h-36 flex-col items-center justify-center gap-1 p-4 text-rosa-suave">
-              <span className="text-3xl text-petala" aria-hidden="true">✿</span>
-              {estado === 'preparando' ? 'Preparando a foto…' : 'Toque para escolher uma foto'}
-            </span>
-          )}
-        </label>
-        <input id="foto" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => escolheuFoto(e.target.files?.[0])} />
-        {previa && <p className="mt-2 text-center text-sm text-rosa-suave">Toque na foto para trocar.</p>}
+        <FotoComFiltros valor={foto} onMudar={(f, c) => { setFoto(f); setCores(c) }} onErro={setErro} />
       </div>
 
       {cores.length > 0 && (
@@ -178,9 +176,11 @@ function Formulario({ onSair }: { onSair: () => void }) {
         {estado === 'enviando' ? 'Publicando… ✦' : 'Criar cena ✦'}
       </button>
 
-      <button type="button" onClick={onSair} className="self-center text-sm text-rosa-suave underline">
-        Sair deste celular
-      </button>
+      {curadora && (
+        <button type="button" onClick={onSair} className="self-center text-sm text-rosa-suave underline">
+          Sair da curadoria neste celular
+        </button>
+      )}
     </form>
   )
 }

@@ -59,6 +59,24 @@ export async function criarAlbum(titulo: string, descricao: string): Promise<Alb
   return r.json()
 }
 
+export async function editarAlbum(albumId: string, titulo: string, descricao: string): Promise<void> {
+  const r = await fetch(caminho(`api/albuns/${encodeURIComponent(albumId)}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...cabecalhoSenha() },
+    body: JSON.stringify({ titulo, descricao }),
+  })
+  if (!r.ok) throw await erroDe(r)
+}
+
+export async function editarCena(albumId: string, cenaId: string, anime: string, comentario: string): Promise<void> {
+  const r = await fetch(caminho(`api/albuns/${encodeURIComponent(albumId)}/cenas/${encodeURIComponent(cenaId)}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...cabecalhoSenha() },
+    body: JSON.stringify({ anime, comentario }),
+  })
+  if (!r.ok) throw await erroDe(r)
+}
+
 export async function criarCena(
   albumId: string,
   dados: { foto: Blob; nomeArquivo: string; anime: string; comentario: string; cores: string[] },
@@ -165,8 +183,19 @@ export async function comentar(albumId: string, cenaId: string, texto: string, r
   return r.json()
 }
 
+export async function editarComentario(id: string, texto: string): Promise<Comentario> {
+  const r = await fetch(caminho(`api/comentarios/${encodeURIComponent(id)}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ texto }),
+  })
+  if (!r.ok) throw await erroDe(r)
+  return r.json()
+}
+
 export async function apagarComentario(id: string): Promise<void> {
   // Vai a senha da curadora se ela estiver salva neste celular (ela pode apagar qualquer um).
+  // Sem a senha, o servidor confere pela conta: quem escreveu ou o dono do álbum.
   const r = await fetch(caminho(`api/comentarios/${encodeURIComponent(id)}`), { method: 'DELETE', headers: cabecalhoSenha() })
   if (!r.ok) throw await erroDe(r)
 }

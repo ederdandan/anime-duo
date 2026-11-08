@@ -16,6 +16,7 @@ public class Album
     public string Titulo { get; set; } = "";
     public string Descricao { get; set; } = "";
     public string Capa { get; set; } = "";
+    public string? DonoId { get; set; }  // conta que criou o álbum (null = só a curadora mexe)
     public List<Item> Itens { get; set; } = [];
 }
 
@@ -49,6 +50,7 @@ public class Comentario
     public string ContaId { get; set; } = "";
     public string Texto { get; set; } = "";
     public DateTimeOffset CriadoEm { get; set; }
+    public DateTimeOffset? EditadoEm { get; set; }
 }
 
 public class Contas(string pastaDados) : ArquivoJson<List<Conta>>(Path.Combine(pastaDados, "contas.json"));
@@ -82,10 +84,19 @@ public record ContaCuradoria(string Id, string Nome, string Email, string Foto, 
     public static ContaCuradoria De(Conta c) => new(c.Id, c.Nome, c.Email, c.Foto, c.Situacao, c.CriadaEm);
 }
 
-public record ComentarioPublico(string Id, string? RespostaDe, string Texto, DateTimeOffset CriadoEm, ContaPublica Autor);
+public record ComentarioPublico(string Id, string? RespostaDe, string Texto, DateTimeOffset CriadoEm, DateTimeOffset? EditadoEm, ContaPublica Autor)
+{
+    public static ComentarioPublico De(Comentario c, Conta autor) =>
+        new(c.Id, c.RespostaDe, c.Texto, c.CriadoEm, c.EditadoEm, ContaPublica.De(autor));
+}
+
+// O álbum como o site recebe: com nome e foto de quem criou.
+public record AlbumPublico(string Id, string Titulo, string Descricao, string Capa, string? DonoId, ContaPublica? Dono, List<Item> Itens);
 
 public record NovoAlbum(string? Titulo, string? Descricao);
+public record TextoCena(string? Anime, string? Comentario);
 public record Entrada(string? Senha);
 public record EntradaConta(string? Email, string? Senha);
 public record NovaSituacao(string? Situacao);
 public record NovoComentario(string? Texto, string? RespostaDe);
+public record TextoComentario(string? Texto);

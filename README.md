@@ -28,13 +28,30 @@ npm run dev
 
 Abra http://localhost:5173. A senha da tela "Nova cena" no computador é `sakura-local`, definida em `server/appsettings.Development.json`.
 
-## Para a curadora: criar cenas pelo site
+## Postar cenas pelo site
+
+Quem pode postar: a **curadora** (com a senha) e qualquer **conta liberada** por ela.
 
 1. No rodapé do mural, toque em **✦ Nova cena**.
-2. Digite a senha da curadora. Só precisa uma vez em cada celular.
+2. Entre com a sua conta (ou, se for a curadora, toque em **Sou a curadora** e digite a senha; só precisa uma vez em cada celular).
 3. Escolha o álbum (ou crie um novo), a foto, escreva o comentário e toque em **Criar cena ✦**.
 
-O site diminui a foto antes de enviar e descobre as cores sozinho. Para apagar uma cena, abra a cena em tela cheia e toque em **Apagar cena**.
+Quem cria um álbum com a conta vira a **dona** dele: o nome e a foto dela aparecem no topo do álbum. Só a dona do álbum e a curadora podem colocar cenas nele, editar e apagar. Os álbuns criados só com a senha da curadora (e os de exemplo) não têm dona: só a curadora mexe neles.
+
+| Quem | Criar álbum | Mexer no álbum e nas cenas | Editar comentário | Apagar comentário |
+|---|---|---|---|---|
+| Curadora | ✅ | ✅ todos | ❌ | ✅ todos |
+| Dona do álbum | ✅ | ✅ só os dela | os dela | ✅ todos do álbum dela |
+| Conta liberada | ✅ | ❌ | os dela | os dela |
+| Visitante sem conta | ❌ | ❌ | ❌ | ❌ |
+
+A foto pode vir da **📷 Câmera** ou da **🖼️ Galeria**. Depois de escolher, dá para colocar um **filtro** (Sakura, Pôr do sol, Noite, Sonho, Vívido, Vintage, Mangá). O site diminui a foto antes de enviar e descobre as cores sozinho, já com o filtro. Os filtros ficam em `src/lib/filtros.ts`: cada um é uma "receita" de números fácil de mudar.
+
+Para mudar textos depois:
+- **Álbum:** abra o álbum e toque em **✎ Editar álbum** para mudar o nome e a descrição (ou **✦ Adicionar cena**).
+- **Cena:** abra a cena em tela cheia e toque em **✎ Editar texto** para mudar o anime e o comentário.
+
+Para apagar uma cena, abra a cena em tela cheia e toque em **Apagar cena**.
 
 ## Comentários
 
@@ -45,7 +62,7 @@ Quem visita o mural pode comentar nas cenas e responder aos comentários (respos
 3. A curadora abre **Curadoria** no rodapé (aparece depois que ela digitou a senha neste celular) e toca em **Liberar ✦** ou **Recusar**.
 4. Com a conta liberada, os comentários aparecem embaixo da cena em tela cheia.
 
-A curadora pode apagar qualquer comentário, e cada pessoa pode apagar os seus. Apagar um comentário apaga também as respostas a ele. Recusar ou apagar uma conta tira os comentários dela do mural.
+Cada pessoa pode **editar** e apagar os seus comentários (aparece "· editado" ao lado da data). A **dona do álbum** pode apagar comentários indesejados no álbum dela, e a curadora pode apagar qualquer um. Apagar um comentário apaga também as respostas a ele. Recusar ou apagar uma conta tira os comentários dela do mural.
 
 No servidor, as contas ficam em `dados/contas.json` (a senha fica guardada só "embaralhada", nunca a senha em si), os comentários em `dados/comentarios.json` e as fotos de perfil em `dados/midia/perfis/`. O e-mail só aparece para a curadora.
 

@@ -14,7 +14,7 @@ public static class RotasComentarios
             var lista = (await comentarios.Ler())
                 .Where(c => c.AlbumId == albumId && c.CenaId == cenaId && autores.ContainsKey(c.ContaId))
                 .OrderBy(c => c.CriadoEm)
-                .Select(c => new ComentarioPublico(c.Id, c.RespostaDe, c.Texto, c.CriadoEm, ContaPublica.De(autores[c.ContaId])));
+                .Select(c => ComentarioPublico.De(c, autores[c.ContaId]));
             return Results.Ok(lista);
         });
 
@@ -56,27 +56,61 @@ public static class RotasComentarios
             });
             if (!salvo) return RotasContas.Erro("O comentário que você quer responder foi apagado.", 404);
 
-            return Results.Created($"/api/comentarios/{comentario.Id}",
-                new ComentarioPublico(comentario.Id, comentario.RespostaDe, comentario.Texto, comentario.CriadoEm, ContaPublica.De(conta)));
+            return Results.Created($"/api/comentarios/{comentario.Id}", ComentarioPublico.De(comentario, conta));
         });
 
-        // A curadora apaga qualquer um; cada pessoa apaga os seus. As respostas embaixo saem junto.
-        api.MapDelete("/comentarios/{id}", async (HttpContext ctx, string id, Comentarios comentarios, Curadoria curadoria) =>
+        // Só quem escreveu pode editar o próprio comentário.
+        api.MapPut("/comentarios/{id}", async (HttpContext ctx, string id, TextoComentario dados,
+            Comentarios comentarios, Permissoes permissoes) =>
         {
-            var daCuradora = curadoria.PedidoDaCuradora(ctx);
-            var contaId = ctx.ContaLogada();
+            var quem = await permissoes.De(ctx);
+            if (quem.ContaId is null) return quem.Negado("Só quem escreveu pode editar o comentário.");
+            var texto = Texto.Limitar(dados.Texto, 1000);
+            if (texto.Length == 0) return RotasContas.Erro("Escreva alguma coisa.");
+
+            Comentario? editado = null;
             var resultado = await comentarios.Alterar(lista =>
             {
                 var c = lista.FirstOrDefault(c => c.Id == id);
                 if (c is null) return 404;
-                if (!daCuradora && c.ContaId != contaId) return 403;
+                if (c.ContaId != quem.ContaId) return 403;
+                c.Texto = texto;
+                c.EditadoEm = DateTimeOffset.UtcNow;
+                editado = c;
+                return 200;
+            });
+            return resultado switch
+            {
+                404 => RotasContas.Erro("Comentário não encontrado.", 404),
+                403 => RotasContas.Erro("Só dá para editar os seus comentários.", 403),
+                _ => Results.Ok(ComentarioPublico.De(editado!, quem.Conta!)),
+            };
+        });
+
+        // Quem pode apagar: quem escreveu, o dono do álbum (para tirar comentários indesejados) e a curadora.
+        // As respostas embaixo saem junto.
+        api.MapDelete("/comentarios/{id}", async (HttpContext ctx, string id, Comentarios comentarios,
+            Permissoes permissoes, Repositorio repo) =>
+        {
+            var quem = await permissoes.De(ctx);
+            if (quem.SenhaErrada) return quem.Negado("Senha incorreta.");
+            var albuns = await repo.Ler();
+            var resultado = await comentarios.Alterar(lista =>
+            {
+                var c = lista.FirstOrDefault(c => c.Id == id);
+                if (c is null) return 404;
+                var album = albuns.FirstOrDefault(a => a.Id == c.AlbumId);
+                var pode = quem.Curadora
+                    || (quem.ContaId is { } eu && c.ContaId == eu)
+                    || (album is not null && quem.DonoDe(album));
+                if (!pode) return 403;
                 Comentarios.ApagarComRespostas(lista, x => x.Id == id);
                 return 204;
             });
             return resultado switch
             {
                 404 => RotasContas.Erro("Comentário não encontrado.", 404),
-                403 => RotasContas.Erro("Só dá para apagar os seus comentários.", 403),
+                403 => RotasContas.Erro("Só quem escreveu, o dono do álbum ou a curadora pode apagar esse comentário.", 403),
                 _ => Results.NoContent(),
             };
         });

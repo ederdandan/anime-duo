@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { apagarComentario, comentar, listarComentarios, senhaSalva } from '../lib/api'
+import { apagarComentario, comentar, editarComentario, listarComentarios } from '../lib/api'
+import { usePermissoes } from '../lib/permissoes'
 import { useConta } from '../lib/conta'
 import { botaoPrincipal, campo } from '../lib/estilos'
 import Avatar from './Avatar'
-import type { Comentario } from '../types'
+import type { Album, Comentario } from '../types'
 
 // Comentários de uma cena, com respostas dentro de respostas.
 // O servidor manda uma lista "reta"; aqui juntamos cada resposta embaixo do seu comentário "pai".
-export default function Comentarios({ albumId, cenaId }: { albumId: string; cenaId: string }) {
+export default function Comentarios({ album, cenaId }: { album: Album; cenaId: string }) {
+  const albumId = album.id
   const { conta } = useConta()
+  const { curadora, donoDe } = usePermissoes()
   const [lista, setLista] = useState<Comentario[] | null>(null)
   const [erro, setErro] = useState('')
-  const [respondendo, setRespondendo] = useState<string | null>(null)
+  // Qual comentário está com a caixinha aberta, e para quê
+  const [aberto, setAberto] = useState<{ id: string; modo: 'responder' | 'editar' } | null>(null)
 
   const carregar = useCallback(async () => {
     try {
@@ -32,11 +36,21 @@ export default function Comentarios({ albumId, cenaId }: { albumId: string; cena
   }
 
   const podeComentar = conta?.situacao === 'liberada'
-  const curadora = !!senhaSalva()
+  // O dono do álbum e a curadora podem apagar qualquer comentário (ex.: um comentário indesejado)
+  const moderador = curadora || donoDe(album)
+  const meu = (c: Comentario) => podeComentar && c.autor.id === conta?.id
+  const alternar = (id: string, modo: 'responder' | 'editar') =>
+    setAberto(aberto?.id === id && aberto.modo === modo ? null : { id, modo })
 
   async function enviar(texto: string, respostaDe: string | null) {
     await comentar(albumId, cenaId, texto, respostaDe)
-    setRespondendo(null)
+    setAberto(null)
+    await carregar()
+  }
+
+  async function salvarEdicao(id: string, texto: string) {
+    await editarComentario(id, texto)
+    setAberto(null)
     await carregar()
   }
 
@@ -62,19 +76,28 @@ export default function Comentarios({ albumId, cenaId }: { albumId: string; cena
               <div className="min-w-0 flex-1">
                 <p className="text-sm">
                   <span className="font-bold text-rosa-escuro">{c.autor.nome}</span>{' '}
-                  <span className="text-xs text-rosa-suave">{quando(c.criadoEm)}</span>
+                  <span className="text-xs text-rosa-suave">{quando(c.criadoEm)}{c.editadoEm && ' · editado'}</span>
                 </p>
-                <p className="leading-relaxed break-words whitespace-pre-line">{c.texto}</p>
-                <div className="flex gap-3 text-sm">
+                {aberto?.id === c.id && aberto.modo === 'editar' ? (
+                  <Escrever inicial={c.texto} rotulo="Salvar" placeholder="Editar comentário" onEnviar={(t) => salvarEdicao(c.id, t)} onCancelar={() => setAberto(null)} />
+                ) : (
+                  <p className="leading-relaxed break-words whitespace-pre-line">{c.texto}</p>
+                )}
+                <div className="flex flex-wrap gap-x-3 text-sm">
                   {podeComentar && (
-                    <button type="button" onClick={() => setRespondendo(respondendo === c.id ? null : c.id)} className="min-h-9 font-bold text-rosa">
+                    <button type="button" onClick={() => alternar(c.id, 'responder')} className="min-h-9 font-bold text-rosa">
                       Responder
                     </button>
                   )}
-                  {(curadora || c.autor.id === conta?.id) && <BotaoApagar onApagar={() => apagar(c.id)} />}
+                  {meu(c) && (
+                    <button type="button" onClick={() => alternar(c.id, 'editar')} className="min-h-9 text-rosa-suave">
+                      Editar
+                    </button>
+                  )}
+                  {(meu(c) || moderador) && <BotaoApagar onApagar={() => apagar(c.id)} />}
                 </div>
-                {respondendo === c.id && (
-                  <Escrever placeholder={`Responder ${c.autor.nome}…`} onEnviar={(t) => enviar(t, c.id)} onCancelar={() => setRespondendo(null)} />
+                {aberto?.id === c.id && aberto.modo === 'responder' && (
+                  <Escrever placeholder={`Responder ${c.autor.nome}…`} onEnviar={(t) => enviar(t, c.id)} onCancelar={() => setAberto(null)} />
                 )}
               </div>
             </div>
@@ -120,8 +143,14 @@ export default function Comentarios({ albumId, cenaId }: { albumId: string; cena
   )
 }
 
-function Escrever({ placeholder, onEnviar, onCancelar }: { placeholder: string; onEnviar: (texto: string) => Promise<void>; onCancelar?: () => void }) {
-  const [texto, setTexto] = useState('')
+function Escrever({ placeholder, onEnviar, onCancelar, inicial = '', rotulo = 'Enviar' }: {
+  placeholder: string
+  onEnviar: (texto: string) => Promise<void>
+  onCancelar?: () => void
+  inicial?: string
+  rotulo?: string
+}) {
+  const [texto, setTexto] = useState(inicial)
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -156,7 +185,7 @@ function Escrever({ placeholder, onEnviar, onCancelar }: { placeholder: string; 
       <div className="flex items-center justify-end gap-3">
         {onCancelar && <button type="button" onClick={onCancelar} className="min-h-10 px-2 text-sm text-rosa-suave underline">Cancelar</button>}
         <button type="submit" disabled={enviando || !texto.trim()} className={`${botaoPrincipal} min-h-10 px-5 text-sm`}>
-          {enviando ? 'Enviando…' : 'Enviar'}
+          {enviando ? 'Enviando…' : rotulo}
         </button>
       </div>
     </form>

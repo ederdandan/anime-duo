@@ -1,23 +1,31 @@
-// Prepara a foto no próprio celular antes de enviar:
-// diminui para no máximo 1600px, comprime e descobre as cores principais.
+// Prepara as fotos no próprio celular antes de enviar:
+// diminui, comprime e descobre as cores principais.
 
-const LADO_MAXIMO = 1600
-
-export async function prepararFoto(arquivo: File): Promise<{ foto: Blob; nomeArquivo: string; cores: string[] }> {
+// 1) Abre a foto (da câmera ou da galeria) já diminuída para no máximo `ladoMaximo`.
+export async function carregarFoto(arquivo: Blob, ladoMaximo = 1600): Promise<HTMLCanvasElement> {
   const bitmap = await createImageBitmap(arquivo)
-  const escala = Math.min(1, LADO_MAXIMO / Math.max(bitmap.width, bitmap.height))
-  const largura = Math.round(bitmap.width * escala)
-  const altura = Math.round(bitmap.height * escala)
-
+  const escala = Math.min(1, ladoMaximo / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement('canvas')
-  canvas.width = largura
-  canvas.height = altura
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, largura, altura)
-
-  const cores = extrairCores(bitmap)
+  canvas.width = Math.round(bitmap.width * escala)
+  canvas.height = Math.round(bitmap.height * escala)
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
+  return canvas
+}
 
-  return { ...(await comprimir(canvas)), cores }
+// Cópia menor de uma foto, para as prévias dos filtros ficarem rápidas.
+export function reduzir(origem: HTMLCanvasElement, ladoMaximo: number): HTMLCanvasElement {
+  const escala = Math.min(1, ladoMaximo / Math.max(origem.width, origem.height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(origem.width * escala))
+  canvas.height = Math.max(1, Math.round(origem.height * escala))
+  canvas.getContext('2d')!.drawImage(origem, 0, 0, canvas.width, canvas.height)
+  return canvas
+}
+
+// 2) Depois do filtro: comprime e descobre as cores (já com o filtro).
+export async function finalizarFoto(canvas: HTMLCanvasElement): Promise<{ foto: Blob; nomeArquivo: string; cores: string[] }> {
+  return { ...(await comprimir(canvas)), cores: extrairCores(canvas) }
 }
 
 // Foto de perfil: recorta um quadrado do meio e diminui para 400x400.
@@ -48,13 +56,13 @@ function paraBlob(canvas: HTMLCanvasElement, tipo: string, qualidade: number): P
 }
 
 // Agrupa cores parecidas e pega as 5 que mais aparecem (e que sejam diferentes entre si).
-function extrairCores(bitmap: ImageBitmap): string[] {
+export function extrairCores(origem: CanvasImageSource): string[] {
   const t = 64
   const c = document.createElement('canvas')
   c.width = t
   c.height = t
   const ctx = c.getContext('2d', { willReadFrequently: true })!
-  ctx.drawImage(bitmap, 0, 0, t, t)
+  ctx.drawImage(origem, 0, 0, t, t)
   const px = ctx.getImageData(0, 0, t, t).data
 
   const grupos = new Map<number, { n: number; r: number; g: number; b: number }>()

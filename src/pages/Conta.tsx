@@ -178,7 +178,17 @@ function Cadastro() {
             {previa ? <img src={previa} alt="Sua foto de perfil" className="size-full object-cover" /> : <>✿<br />Escolher<br />foto</>}
           </span>
         </label>
-        <input id="foto-perfil" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => escolheuFoto(e.target.files?.[0])} />
+        <input id="foto-perfil" type="file" accept="image/*" className="sr-only" onChange={(e) => escolheuFoto(e.target.files?.[0])} />
+        <div className="flex gap-2 text-sm">
+          {/* capture="user" abre a câmera da frente (selfie) no celular */}
+          <label className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-white px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
+            <span aria-hidden="true">📷</span> Tirar selfie
+            <input type="file" accept="image/*" capture="user" className="sr-only" onChange={(e) => escolheuFoto(e.target.files?.[0])} />
+          </label>
+          <label htmlFor="foto-perfil" className="inline-flex min-h-10 cursor-pointer items-center gap-1 rounded-full bg-white px-4 font-bold text-rosa shadow-[0_0_0_1px_var(--color-borda-forte)]">
+            <span aria-hidden="true">🖼️</span> Galeria
+          </label>
+        </div>
         <span className="text-sm text-rosa-suave">Foto de perfil (aparece nos seus comentários)</span>
       </div>
       <div>

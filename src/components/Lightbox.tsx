@@ -1,27 +1,32 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion, type PanInfo } from 'motion/react'
 import { caminho } from '../lib/caminho'
-import { apagarCena, senhaSalva } from '../lib/api'
+import { apagarCena, editarCena } from '../lib/api'
+import { usePermissoes } from '../lib/permissoes'
+import { botaoPrincipal, campo } from '../lib/estilos'
 import { useAlbuns } from '../lib/albuns'
 import Paleta from './Paleta'
 import Comentarios from './Comentarios'
-import type { Item } from '../types'
+import type { Album, Item } from '../types'
 
 interface Props {
-  albumId: string
-  itens: Item[]
+  album: Album
   indice: number
   onTrocar: (novo: number) => void
   onFechar: () => void
 }
 
 // Imagem em tela cheia. No celular: deslize para os lados para trocar de imagem.
-export default function Lightbox({ albumId, itens, indice, onTrocar, onFechar }: Props) {
+export default function Lightbox({ album, indice, onTrocar, onFechar }: Props) {
+  const albumId = album.id
+  const itens = album.itens
   const item = itens[indice]
   const { temServidor, recarregar } = useAlbuns()
-  const podeApagar = temServidor && !!senhaSalva()
+  // O dono do álbum e a curadora editam e apagam as cenas
+  const podeApagar = usePermissoes().podeMexer(album)
   const [confirmando, setConfirmando] = useState<string | null>(null)
   const [erro, setErro] = useState('')
+  const [editando, setEditando] = useState<string | null>(null)  // id da cena em edição
 
   async function apagar() {
     try {
@@ -110,18 +115,31 @@ export default function Lightbox({ albumId, itens, indice, onTrocar, onFechar }:
             <button type="button" onClick={proxima} aria-label="Próxima imagem" className="grid size-11 place-items-center rounded-full bg-white/15 text-xl">›</button>
           </div>
 
-          <div className="rounded-[28px] bg-white px-5 py-4 text-center shadow-[0_0_0_2px_#fff,0_0_0_3px_var(--color-borda)]">
-            <p className="leading-relaxed">
-              <span className="text-petala">～ </span>{item.comentario}<span className="text-petala"> ～</span>
-            </p>
-            <div className="mt-4">
-              <Paleta cores={item.cores} />
+          {editando === item.id ? (
+            <EditarTexto
+              albumId={albumId}
+              item={item}
+              onFechar={async (salvou) => { setEditando(null); if (salvou) await recarregar() }}
+            />
+          ) : (
+            <div className="rounded-[28px] bg-white px-5 py-4 text-center shadow-[0_0_0_2px_#fff,0_0_0_3px_var(--color-borda)]">
+              <p className="leading-relaxed">
+                <span className="text-petala">～ </span>{item.comentario}<span className="text-petala"> ～</span>
+              </p>
+              <div className="mt-4">
+                <Paleta cores={item.cores} />
+              </div>
+              {podeApagar && (
+                <button type="button" onClick={() => setEditando(item.id)} className="mt-3 min-h-10 rounded-full px-4 text-sm font-bold text-rosa">
+                  ✎ Editar texto
+                </button>
+              )}
             </div>
-          </div>
+          )}
 
           <p className="text-center text-xs text-white/60">Deslize para o lado para trocar · para baixo para fechar</p>
 
-          {temServidor && <Comentarios key={item.id} albumId={albumId} cenaId={item.id} />}
+          {temServidor && <Comentarios key={item.id} album={album} cenaId={item.id} />}
 
           {podeApagar && (
             <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
@@ -142,5 +160,44 @@ export default function Lightbox({ albumId, itens, indice, onTrocar, onFechar }:
         </div>
       </div>
     </motion.div>
+  )
+}
+
+// A curadora muda "de qual anime é" e o comentário da cena.
+function EditarTexto({ albumId, item, onFechar }: { albumId: string; item: Item; onFechar: (salvou: boolean) => void }) {
+  const [anime, setAnime] = useState(item.anime)
+  const [comentario, setComentario] = useState(item.comentario)
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
+
+  async function salvar(e: FormEvent) {
+    e.preventDefault()
+    setSalvando(true)
+    setErro('')
+    try {
+      await editarCena(albumId, item.id, anime, comentario)
+      onFechar(true)
+    } catch (err) {
+      setErro((err as Error).message)
+      setSalvando(false)
+    }
+  }
+
+  return (
+    <form onSubmit={salvar} className="flex flex-col gap-3 rounded-[28px] bg-white px-5 py-4 text-left shadow-[0_0_0_2px_#fff,0_0_0_3px_var(--color-borda)]">
+      <div>
+        <label htmlFor="editar-anime" className="mb-1 block text-sm font-bold text-rosa-escuro">De qual anime é?</label>
+        <input id="editar-anime" value={anime} onChange={(e) => setAnime(e.target.value)} maxLength={80} className={campo} />
+      </div>
+      <div>
+        <label htmlFor="editar-comentario" className="mb-1 block text-sm font-bold text-rosa-escuro">Por que essa cena te inspira?</label>
+        <textarea id="editar-comentario" value={comentario} onChange={(e) => setComentario(e.target.value)} maxLength={500} rows={4} className={campo} required autoFocus />
+      </div>
+      {erro && <p className="text-sm font-bold text-rosa" role="alert">{erro}</p>}
+      <div className="flex items-center justify-end gap-3">
+        <button type="button" onClick={() => onFechar(false)} className="min-h-11 px-3 text-rosa-suave underline">Cancelar</button>
+        <button type="submit" disabled={salvando} className={`${botaoPrincipal} px-6`}>{salvando ? 'Salvando…' : 'Salvar'}</button>
+      </div>
+    </form>
   )
 }

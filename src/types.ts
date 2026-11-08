@@ -13,6 +13,8 @@ export interface Album {
   titulo: string
   descricao: string
   capa: string
+  donoId?: string | null   // conta que criou o álbum (sem dono = só a curadora mexe)
+  dono?: Conta | null      // nome e foto de quem criou
   itens: Item[]
 }
 
@@ -36,5 +38,6 @@ export interface Comentario {
   respostaDe: string | null   // id do comentário "pai"; null = comentário direto na cena
   texto: string
   criadoEm: string
+  editadoEm?: string | null
   autor: Conta
 }
